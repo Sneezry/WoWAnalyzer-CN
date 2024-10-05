@@ -8,13 +8,13 @@ import { TALENTS_DRUID } from 'common/TALENTS';
 import CastEfficiencyBar from 'parser/ui/CastEfficiencyBar';
 import PreparationSection from 'interface/guide/components/Preparation/PreparationSection';
 
-/** Common 'rule line' point for the explanation/data in Core Spells section */
+/** 核心技能部分的说明/数据中的常见规则点 */
 export const GUIDE_CORE_EXPLANATION_PERCENT = 40;
 
 export default function Guide({ modules, events, info }: GuideProps<typeof CombatLogParser>) {
   return (
     <>
-      <Section title="Core Spells">
+      <Section title="核心技能">
         {modules.rejuvenation.guideSubsection}
         {modules.wildGrowth.guideSubsection}
         {modules.regrowthAndClearcasting.guideSubsection}
@@ -28,15 +28,12 @@ export default function Guide({ modules, events, info }: GuideProps<typeof Comba
         {info.combatant.hasTalent(TALENTS_DRUID.CENARION_WARD_TALENT) &&
           modules.cenarionWard.guideSubsection}
       </Section>
-      <Section title="Healing Cooldowns">
+      <Section title="治疗冷却技能">
         <p>
-          Resto Druids have access to a variety of powerful healing cooldowns. These cooldowns are
-          mana efficient and powerful, you should aim to use them frequently. The power of your
-          cooldowns will be greatly increased by <strong>ramping</strong> or pre-casting many{' '}
-          <SpellLink spell={SPELLS.REJUVENATION} /> and a <SpellLink spell={SPELLS.WILD_GROWTH} />{' '}
-          in order to maximize the number of HoTs present when you activate your cooldown. Plan
-          ahead by starting your ramp in the seconds before major raid damage hits. You should
-          always have a Wild Growth out before activating one of your cooldowns.
+          恢复德鲁伊拥有多种强大的治疗冷却技能。这些技能既节省法力，又具备强大的治疗能力，应该频繁使用。通过提前施放许多{' '}
+          <SpellLink spell={SPELLS.REJUVENATION} />和<SpellLink spell={SPELLS.WILD_GROWTH} />{' '}
+          来为你的冷却技能做好准备，从而在激活冷却技能时最大化激活时存在的治疗效果。提前规划，在团队受到大量伤害前几秒开始准备。
+          你应该始终在使用冷却技能前施放一次野性成长。
         </p>
         <HotGraphSubsection modules={modules} events={events} info={info} />
         <CooldownGraphSubsection modules={modules} events={events} info={info} />
@@ -50,10 +47,9 @@ export default function Guide({ modules, events, info }: GuideProps<typeof Comba
 function HotGraphSubsection({ modules, events, info }: GuideProps<typeof CombatLogParser>) {
   return (
     <SubSection>
-      <strong>HoT Graph</strong> - this graph shows how many Rejuvenation and Wild Growths you had
-      active over the course of the encounter, with rule lines showing when you activated your
-      healing cooldowns. Did you have a Wild Growth out before every cooldown? Did you ramp
-      Rejuvenations well before big damage?
+      <strong>HoT 图表</strong> - 该图表显示了在战斗过程中你激活的回春术和野性成长的数量，
+      规则线显示了你激活治疗冷却技能的时间点。你是否在每次冷却技能之前都施放了野性成长？
+      在重大伤害前你是否充分准备了回春术？
       {modules.hotCountGraph.plot}
     </SubSection>
   );
@@ -62,10 +58,8 @@ function HotGraphSubsection({ modules, events, info }: GuideProps<typeof CombatL
 function CooldownGraphSubsection({ modules, events, info }: GuideProps<typeof CombatLogParser>) {
   return (
     <SubSection>
-      <strong>Cooldown Graph</strong> - this graph shows when you used your cooldowns and how long
-      you waited to use them again. Grey segments show when the spell was available, yellow segments
-      show when the spell was cooling down. Red segments highlight times when you could have fit a
-      whole extra use of the cooldown.
+      <strong>冷却图表</strong> - 该图表显示了你何时使用了冷却技能以及你再次使用它们之前的等待时间。
+      灰色段表示技能可用，黄色段表示技能在冷却中。红色段突出显示了你本可以多使用一次冷却技能的时间。
       {info.combatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) && (
         <CastEfficiencyBar
           spellId={SPELLS.CONVOKE_SPIRITS.id}
@@ -108,7 +102,7 @@ function CooldownBreakdownSubsection({
 }: GuideProps<typeof CombatLogParser>) {
   return (
     <SubSection>
-      <strong>Spell Breakdowns</strong>
+      <strong>技能细节分析</strong>
       <p />
       {info.combatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) &&
         modules.convokeSpirits.guideCastBreakdown}

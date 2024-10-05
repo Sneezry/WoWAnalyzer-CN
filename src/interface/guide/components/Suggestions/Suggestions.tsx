@@ -13,11 +13,11 @@ const Suggestions = ({ parseResults, showMinorIssues }: SuggestionsProps) => (
     {!parseResults.issues.find((issue) => issue.importance === ISSUE_IMPORTANCE.MAJOR) && (
       <li className="item major" style={{ color: '#25ff00' }}>
         <div className="icon">
-          <Icon icon="thumbsup" alt="Thumbsup" />
+          <Icon icon="thumbsup" alt="点赞" />
         </div>
         <div className="suggestion">
           <Trans id="interface.report.results.overview.suggestions.noMajorIssues">
-            There are no major issues in this fight. Good job!
+            本次战斗没有重大问题。做得好！
           </Trans>
         </div>
       </li>

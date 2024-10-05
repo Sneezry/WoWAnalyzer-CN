@@ -21,11 +21,10 @@ const REJUV_MAX_BOOST_PER_RANK = 0.15;
 const TRANQ_MAX_BOOST_PER_RANK = 0.15;
 
 /**
- * **Regenesis**
- * Spec Talent
+ * **再生**
+ * 专精天赋
  *
- * Rejuvenation healing is increased by up to (15 / 30)%, and Tranquility healing is increased by
- * up to (15 / 30)%, healing for more on low-health targets.
+ * 回春术的治疗量提高最高(15 / 30)%，宁静的治疗量提高最高(15 / 30)%，对低血量目标的治疗效果更强。
  */
 class Regenesis extends Analyzer {
   ranks: number;
@@ -57,16 +56,16 @@ class Regenesis extends Analyzer {
   }
 
   _getBoostHealing(event: HealEvent, boostAmount: number): number {
-    // Scaling on the boost is linear, with max boost when target is at 0% and no boost when target is full
+    // 提升的效果是线性的，目标血量为0%时提升最大，目标满血时无提升
     const healthPercentMissingBeforeHeal = 1 - calculateHealTargetHealthPercent(event);
     const att = calculateEffectiveHealing(event, boostAmount * healthPercentMissingBeforeHeal);
     if (DEBUG && event.amount > 0) {
       console.log(
-        `${event.ability.name} heal for ${
+        `${event.ability.name} 治疗量为 ${
           event.amount
-        }\nw/ max boost ${boostAmount}\nmissing health ${healthPercentMissingBeforeHeal.toFixed(
+        }\n最大提升 ${boostAmount}\n血量缺失 ${healthPercentMissingBeforeHeal.toFixed(
           2,
-        )}\nattributes ${att}\n`,
+        )}\n属性 ${att}\n`,
         event,
       );
     }
@@ -81,11 +80,11 @@ class Regenesis extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(7)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(7)} // 根据天赋行编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            Breakdown by boosted spell:
+            按提升法术的细分：
             <ul>
               <li>
                 <SpellLink spell={SPELLS.REJUVENATION} />:{' '}

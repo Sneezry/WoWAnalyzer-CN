@@ -13,6 +13,7 @@ interface Props {
   recommendedFlasks?: Spell[];
   expansion?: Expansion;
 }
+
 const FlaskPanel = ({ recommendedFlasks, expansion }: Props) => {
   const flaskChecker = useAnalyzer(FlaskChecker);
   const info = useInfo();
@@ -53,14 +54,14 @@ const FlaskPanel = ({ recommendedFlasks, expansion }: Props) => {
         </div>
       </PanelHeader>
       {performance === QualitativePerformance.Perfect && (
-        <p>You had the best food active when starting the fight{showCurrentFlaskBuff}</p>
+        <p>您在战斗开始时激活了最佳药水增益{showCurrentFlaskBuff}</p>
       )}
       {performance === QualitativePerformance.Good && (
         <>
-          <p>You had a high quality flask active when starting the fight{showCurrentFlaskBuff}</p>
+          <p>您在战斗开始时激活了高质量的药水增益{showCurrentFlaskBuff}</p>
           {recommendedFlasks && (
             <Recommendations
-              header={<strong>Recommended Flask(s)</strong>}
+              header={<strong>推荐的药水增益</strong>}
               recommendations={recommendedFlasks}
             />
           )}
@@ -68,12 +69,10 @@ const FlaskPanel = ({ recommendedFlasks, expansion }: Props) => {
       )}
       {performance === QualitativePerformance.Ok && (
         <>
-          <p>
-            You did not have the best flask active when starting the fight{showCurrentFlaskBuff}
-          </p>
+          <p>您在战斗开始时没有激活最佳药水增益{showCurrentFlaskBuff}</p>
           {recommendedFlasks && (
             <Recommendations
-              header={<strong>Recommended Flask(s)</strong>}
+              header={<strong>推荐的药水增益</strong>}
               recommendations={recommendedFlasks}
             />
           )}
@@ -81,10 +80,10 @@ const FlaskPanel = ({ recommendedFlasks, expansion }: Props) => {
       )}
       {performance === QualitativePerformance.Fail && (
         <>
-          <p>You did not have any flask active when starting the fight.</p>
+          <p>您在战斗开始时没有激活任何药水增益。</p>
           {recommendedFlasks && (
             <Recommendations
-              header={<strong>Recommended Flask(s)</strong>}
+              header={<strong>推荐的药水增益</strong>}
               recommendations={recommendedFlasks}
             />
           )}

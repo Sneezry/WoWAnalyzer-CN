@@ -10,11 +10,11 @@ import Mastery from 'analysis/retail/druid/restoration/modules/core/Mastery';
 import { TALENTS_DRUID } from 'common/TALENTS';
 
 /**
- * **Cultivation**
- * Spec Talent Tier 6
+ * **栽培**
+ * 专精天赋 第六层
  *
- * When Rejuvenation heals a target below 60% health, it applies Cultivation to the target,
- * healing them for (X% of Spell power) over 6 sec.
+ * 当回春术治疗一个生命值低于60%的目标时，对其应用栽培效果，
+ * 在6秒内为其恢复（X% 法术强度）的生命值。
  */
 class Cultivation extends Analyzer {
   static dependencies = {
@@ -43,19 +43,18 @@ class Cultivation extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(6)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(6)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            This is the sum of the direct healing from Cultivation and the healing enabled by
-            Cultivation's extra mastery stack.
+            这是栽培的直接治疗量和通过栽培触发的精通层数带来的治疗量之和。
             <ul>
               <li>
-                Direct: <strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
+                直接治疗量：<strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
               </li>
               <li>
-                Mastery: <strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
+                精通治疗量：<strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
               </li>
             </ul>
           </>

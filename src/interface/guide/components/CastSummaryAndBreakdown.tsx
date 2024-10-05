@@ -13,43 +13,42 @@ const CastSummaryAndBreakdownContainer = styled.div`
 `;
 
 interface Props {
-  /** The spell ID or Spell object being represented, used in explanatory text */
+  /** 被表示的法术ID或法术对象，用于解释性文本 */
   spell: number | Spell;
-  /** A per-cast evaluation of the data to be displayed */
+  /** 要显示的每次施法评估数据 */
   castEntries: BoxRowEntry[];
-  /** A label to include when mousing over the 'perfect' section of the Performance Bar */
+  /** 鼠标悬停在“完美”部分的性能条时包含的标签 */
   perfectLabel?: React.ReactNode;
-  /** A brief explanation of what makes a cast 'perfect', included in explanatory text */
+  /** 对于什么是“完美”施法的简要解释，包括在解释性文本中 */
   perfectExtraExplanation?: React.ReactNode;
-  /** If set, text with the percentage of perfect casts is shown before the Performance Bar */
+  /** 如果设置，显示完美施法百分比的文本会在性能条之前 */
   includePerfectCastPercentage?: boolean;
-  /** A label to include when mousing over the 'good' section of the Performance Bar */
+  /** 鼠标悬停在“良好”部分的性能条时包含的标签 */
   goodLabel?: React.ReactNode;
-  /** A brief explanation of what makes a cast 'good', included in explanatory text */
+  /** 对于什么是“良好”施法的简要解释，包括在解释性文本中 */
   goodExtraExplanation?: React.ReactNode;
-  /** If set, text with the percentage of good casts is shown before the Performance Bar */
+  /** 如果设置，显示良好施法百分比的文本会在性能条之前 */
   includeGoodCastPercentage?: boolean;
-  /** A label to include when mousing over the 'ok' section of the Performance Bar */
+  /** 鼠标悬停在“还可以”部分的性能条时包含的标签 */
   okLabel?: React.ReactNode;
-  /** A brief explanation of what makes a cast 'ok', included in explanatory text */
+  /** 对于什么是“还可以”施法的简要解释，包括在解释性文本中 */
   okExtraExplanation?: React.ReactNode;
-  /** If set, text with the percentage of ok casts is shown before the Performance Bar */
+  /** 如果设置，显示还可以施法百分比的文本会在性能条之前 */
   includeOkCastPercentage?: boolean;
-  /** A label to include when mousing over the 'bad' section of the Performance Bar */
+  /** 鼠标悬停在“糟糕”部分的性能条时包含的标签 */
   badLabel?: React.ReactNode;
-  /** A brief explanation of what makes a cast 'bad', included in explanatory text */
+  /** 对于什么是“糟糕”施法的简要解释，包括在解释性文本中 */
   badExtraExplanation?: React.ReactNode;
-  /** If set, text with the percentage of bad casts is shown before the Performance Bar */
+  /** 如果设置，显示糟糕施法百分比的文本会在性能条之前 */
   includeBadCastPercentage?: boolean;
-  /** If set, explanatory text uses the word 'use' instead of 'cast'. Useful if data is evaluating
-   *  procs instead of casts */
+  /** 如果设置，解释性文本使用“使用”而不是“施法”。如果数据评估触发效果而不是施法，这很有用 */
   usesInsteadOfCasts?: boolean;
-  /** A callback to use when the Performance Box with the given index is clicked */
+  /** 点击具有给定索引的性能框时使用的回调 */
   onClickBox?: (index: number) => void;
 }
 
 /**
- * A {@link GradiatedPerformanceBar} that can be clicked to expand into a {@link PerformanceBoxRow}.
+ * 一个可点击的{@link GradiatedPerformanceBar}，可以扩展为{@link PerformanceBoxRow}。
  */
 const CastSummaryAndBreakdown = ({
   spell,
@@ -81,34 +80,34 @@ const CastSummaryAndBreakdown = ({
   const hasOkCasts = ok !== 0;
   const hasBadCasts = bad !== 0;
 
-  const instanceWord = usesInsteadOfCasts ? 'use' : 'cast';
+  const instanceWord = usesInsteadOfCasts ? '使用' : '施法';
 
   const perfectExplanation = !perfectExtraExplanation ? (
-    <>Blue is a perfect {instanceWord}</>
+    <>蓝色是完美的{instanceWord}</>
   ) : (
     <>
-      Blue is a perfect {instanceWord} ({perfectExtraExplanation})
+      蓝色是完美的{instanceWord}（{perfectExtraExplanation}）
     </>
   );
   const goodExplanation = !goodExtraExplanation ? (
-    <>Green is a good {instanceWord}</>
+    <>绿色是良好的{instanceWord}</>
   ) : (
     <>
-      Green is a good {instanceWord} ({goodExtraExplanation})
+      绿色是良好的{instanceWord}（{goodExtraExplanation}）
     </>
   );
   const okExplanation = !okExtraExplanation ? (
-    <>Yellow is an ok {instanceWord}</>
+    <>黄色是还可以的{instanceWord}</>
   ) : (
     <>
-      Yellow is an ok {instanceWord} ({okExtraExplanation})
+      黄色是还可以的{instanceWord}（{okExtraExplanation}）
     </>
   );
   const badExplanation = !badExtraExplanation ? (
-    <>Red is a bad {instanceWord}</>
+    <>红色是糟糕的{instanceWord}</>
   ) : (
     <>
-      Red is a bad {instanceWord} ({badExtraExplanation})
+      红色是糟糕的{instanceWord}（{badExtraExplanation}）
     </>
   );
 
@@ -126,10 +125,10 @@ const CastSummaryAndBreakdown = ({
       </Fragment>
     ));
 
-  const perfectBarLabel = perfectLabel || `Perfect ${instanceWord}s`;
-  const goodBarLabel = goodLabel || `Good ${instanceWord}s`;
-  const okBarLabel = okLabel || `Ok ${instanceWord}s`;
-  const badBarLabel = badLabel || `Bad ${instanceWord}s`;
+  const perfectBarLabel = perfectLabel || `完美的${instanceWord}`;
+  const goodBarLabel = goodLabel || `良好的${instanceWord}`;
+  const okBarLabel = okLabel || `还可以的${instanceWord}`;
+  const badBarLabel = badLabel || `糟糕的${instanceWord}`;
 
   return (
     <CastSummaryAndBreakdownContainer>
@@ -166,11 +165,10 @@ const CastSummaryAndBreakdown = ({
         />
       )}
       <strong>
-        <SpellLink spell={spell} /> casts
+        <SpellLink spell={spell} /> 的施法
       </strong>{' '}
       <small>
-        - {performanceExplanation}. Mouseover for more details. Click to see per-{instanceWord}{' '}
-        details.
+        - {performanceExplanation}。鼠标悬停以获取更多细节。点击查看每次{instanceWord}的细节。
       </small>
       <ControlledExpandable
         header={
@@ -185,7 +183,7 @@ const CastSummaryAndBreakdown = ({
         expanded={isExpanded}
         inverseExpanded={() => setIsExpanded(!isExpanded)}
       >
-        <small>Mouseover for more details.</small>
+        <small>鼠标悬停以获取更多细节。</small>
         <PerformanceBoxRow onClickBox={onClickBox} values={castEntries} />
       </ControlledExpandable>
     </CastSummaryAndBreakdownContainer>

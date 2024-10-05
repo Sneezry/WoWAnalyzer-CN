@@ -1,8 +1,8 @@
 /**
- * **Grove Tending**
- * Spec Talent
+ * **林地疗愈**
+ * 专精天赋
  *
- * Swiftmend heals the target for X over 9 sec.
+ * 迅捷治愈在9秒内为目标治疗X点生命值。
  */
 import Analyzer, { Options } from 'parser/core/Analyzer';
 import Mastery from 'analysis/retail/druid/restoration/modules/core/Mastery';
@@ -42,18 +42,17 @@ class GroveTending extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(3)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(3)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the sum of the direct healing from Grove Tending and the healing enabled by
-            Grove Tending's extra mastery stack.
+            这是林地疗愈的直接治疗与额外的精通治疗加成的总和。
             <ul>
               <li>
-                Direct: <strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
+                直接治疗：<strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
               </li>
               <li>
-                Mastery: <strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
+                精通治疗：<strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
               </li>
             </ul>
           </>

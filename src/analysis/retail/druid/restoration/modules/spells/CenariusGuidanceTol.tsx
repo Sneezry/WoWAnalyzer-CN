@@ -25,16 +25,16 @@ const deps = {
 };
 
 /**
- * **Cenarius Guidance (Tree of Life)**
- * Spec Talent Tier 9
+ * **塞纳留斯的指引（树形态）**
+ * 专精天赋 第九层
  *
- * During Incarnation: Tree of Life, you summon a Grove Guardian every 10 sec.
- * The cooldown of Incarnation: Tree of Life is reduced by 5.0 sec when Grove Guardians fade.
+ * 在化身：生命之树期间，你每10秒召唤一个丛林守护者。
+ * 当丛林守护者消失时，化身：生命之树的冷却时间减少5秒。
  */
 export default class CenariusGuidanceTol extends Analyzer.withDependencies(deps) {
-  /** CDR applied to the current ToL cooling down */
+  /** 当前树形态冷却中应用的冷却缩减 */
   cdrOnCurrCast: number = 0;
-  /** CDR applied to prior ToL cooldowns */
+  /** 之前树形态冷却中应用的冷却缩减 */
   cdrPerCast: number[] = [];
 
   constructor(options: Options) {
@@ -43,7 +43,7 @@ export default class CenariusGuidanceTol extends Analyzer.withDependencies(deps)
       this.selectedCombatant.hasTalent(TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT) &&
       this.selectedCombatant.hasTalent(TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT);
 
-    // TODO this is a placeholder until we can trigger on the correct thing, which is GG death
+    // TODO 这是一个占位符，直到我们可以正确地触发GG死亡事件
     this.addEventListener(
       Events.summon.by(SELECTED_PLAYER).spell(TALENTS_DRUID.GROVE_GUARDIANS_TALENT),
       this.onGGSummon,
@@ -83,30 +83,23 @@ export default class CenariusGuidanceTol extends Analyzer.withDependencies(deps)
     const avgCdr = this.tolCdrPerCast;
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(9)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(9)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
             <p>
-              This is the healing from Grove Guardians summoned due to this talent's effect. The
-              heal number does not include the additional benefits of the cooldown reduction effect.
+              这是由该天赋效果召唤的丛林守护者造成的治疗量。治疗量不包括冷却缩减效果的额外收益。
             </p>
             <p>
-              CDR per cast expresses the average amount you reduced ToL's cooldown.{' '}
-              <strong>It only counts cooldowns that finished during the selected encounter.</strong>
+              每次施放的平均冷却缩减表示你减少化身：生命之树冷却时间的平均量。{' '}
+              <strong>它仅计算在所选战斗中完成的冷却时间。</strong>
               {avgCdr === undefined && (
-                <strong>
-                  {' '}
-                  This shows 'N/A' because no ToL cooldowns finished during the encounter.
-                </strong>
+                <strong> 显示为'N/A'是因为在战斗中没有完成的化身：生命之树冷却时间。</strong>
               )}
             </p>
             <p>
-              <strong>
-                CDR is listed as approximate because due to difficulties tracking Grove Guardian
-                death events, we have to guess precisely when the CDR occurs.
-              </strong>
+              <strong>由于追踪丛林守护者死亡事件的困难，冷却缩减仅为近似值。</strong>
             </p>
           </>
         }
@@ -117,8 +110,8 @@ export default class CenariusGuidanceTol extends Analyzer.withDependencies(deps)
           <br />
           <>
             <SpellIcon spell={TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT} />{' '}
-            {avgCdr === undefined ? 'N/A' : `≈${(avgCdr / 1000).toFixed(1)}s`}{' '}
-            <small>CDR per cast</small>
+            {avgCdr === undefined ? 'N/A' : `≈${(avgCdr / 1000).toFixed(1)}秒`}{' '}
+            <small>每次施放的冷却缩减</small>
           </>
         </BoringSpellValueText>
       </Statistic>

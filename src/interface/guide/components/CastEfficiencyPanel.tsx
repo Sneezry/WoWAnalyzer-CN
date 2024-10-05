@@ -8,11 +8,11 @@ import { BadColor, GoodColor, MediocreColor, OkColor, useAnalyzer } from 'interf
 import Abilities from 'parser/core/modules/Abilities';
 
 /**
- * A rounded panel showing a spell's cast efficiency stats and a minimal cast / CD timeline
- * @param spell the spell to show stats for
- * @param useSpellLink iff true, the spell's name in the panel will be a spell link instead of plaintext
- * @param useThresholds iff true, the cast efficiency percentage will be color coded by performance
- *    using the abilities efficiency requirements.
+ * 显示法术施放效率统计的圆角面板，以及最小的施放/冷却时间线
+ * @param spell 要显示统计的法术
+ * @param useSpellLink 如果为 true，面板中的法术名称将是法术链接，而不是纯文本
+ * @param useThresholds 如果为 true，施放效率百分比将根据表现进行颜色编码
+ *    使用法术效率要求。
  */
 export default function CastEfficiencyPanel({
   spell,
@@ -35,10 +35,10 @@ export default function CastEfficiencyPanel({
 }
 
 /**
- * A subcomponent of CastEfficiencyPanel including only the percentage and possible casts stats text.
- * @param spell the spell to show stats for
- * @param useThresholds iff true, the cast efficiency percentage will be color coded by performance
- *    using the abilities efficiency requirements.
+ * CastEfficiencyPanel 的子组件，仅包括百分比和可能施放的统计文本。
+ * @param spell 要显示统计的法术
+ * @param useThresholds 如果为 true，施放效率百分比将根据表现进行颜色编码
+ *    使用法术效率要求。
  */
 export function CastEfficiencyStatElement({
   spell,
@@ -66,15 +66,15 @@ export function CastEfficiencyStatElement({
     <>
       {!castEfficObj ? (
         <>
-          <i>Error getting Cast Efficiency data</i>
+          <i>获取施放效率数据时出错</i>
         </>
       ) : (
         <>
           <span style={{ color: textColor, fontSize: 16 }}>
             <strong>{formatPercentage(castEfficObj.efficiency || 0, 0)}%</strong>
           </span>{' '}
-          cast efficiency (<strong>{castEfficObj.casts}</strong> of{' '}
-          <strong>{castEfficObj.maxCasts}</strong> possible casts)
+          施放效率 (<strong>{castEfficObj.casts}</strong> 次施放{' '}
+          <strong>{castEfficObj.maxCasts}</strong> 次可能施放)
         </>
       )}
     </>
@@ -82,8 +82,8 @@ export function CastEfficiencyStatElement({
 }
 
 /**
- * A subcomponent of CastEfficiencyPanel including only the cooldown bar with its text explanation.
- * @param spell the spell to show stats for
+ * CastEfficiencyPanel 的子组件，仅包括带文本说明的冷却条。
+ * @param spell 要显示统计的法术
  */
 export function CastEfficiencyBarElement({ spell }: { spell: Spell }) {
   const ability = useAnalyzer(Abilities)!.getAbility(spell.id);
@@ -91,16 +91,16 @@ export function CastEfficiencyBarElement({ spell }: { spell: Spell }) {
   const gapHighlightMode = hasCharges ? GapHighlight.All : GapHighlight.FullCooldown;
   return (
     <div>
-      <strong>Cooldown Timeline</strong>
+      <strong>冷却时间线</strong>
       <small>
         {hasCharges ? (
-          <> - yellow when cooling down, red when all charges available, white lines show casts.</>
+          <> - 冷却时为黄色，所有充能可用时为红色，白色线条显示施放。</>
         ) : (
           <>
             {' '}
-            - yellow when on cooldown, grey when available, white lines show casts.
+            - 冷却时为黄色，可用时为灰色，白色线条显示施放。
             <br />
-            Red highlights available times you could have fit a whole extra use of the ability.
+            红色高亮显示您可以插入额外施放的时间。
           </>
         )}
       </small>

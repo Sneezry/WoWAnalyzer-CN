@@ -7,6 +7,7 @@ interface Props {
   recommendedLegEnhancements?: Enchant[];
   recommendedWeaponEnhancements?: Record<number, Enchant[]>;
 }
+
 const EnchantmentSubSection = ({ recommendedWeaponEnhancements }: Props) => {
   const weaponEnhancementChecker = useAnalyzer(WeaponEnhancementChecker);
   const info = useInfo();
@@ -17,12 +18,12 @@ const EnchantmentSubSection = ({ recommendedWeaponEnhancements }: Props) => {
   const weaponBoxRowEntries =
     weaponEnhancementChecker?.getWeaponEnhancementBoxRowEntries(recommendedWeaponEnhancements) ??
     [];
-  const enhancementBoxRowEntires = [...weaponBoxRowEntries];
+  const enhancementBoxRowEntries = [...weaponBoxRowEntries];
 
   return (
     <SubSection title="Enhancements">
-      <p>Enhancements are easy ways to improve your throughput.</p>
-      <EnhancementBoxRow values={enhancementBoxRowEntires} />
+      <p>增强是提升你输出的简单方法。</p>
+      <EnhancementBoxRow values={enhancementBoxRowEntries} />
     </SubSection>
   );
 };

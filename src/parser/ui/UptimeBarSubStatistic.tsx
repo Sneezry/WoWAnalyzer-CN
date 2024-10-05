@@ -47,7 +47,7 @@ export default function uptimeBarSubStatistic(
   subBars: UptimeBarSpec[] = [],
   subPercentageStyle: SubPercentageStyle = SubPercentageStyle.RELATIVE,
   subIncludeUptimeText: boolean = false,
-  statText: string = 'uptime',
+  statText: string = '激活',
 ): React.ReactNode {
   const primaryUptime = getCombinedUptime(primaryBar.uptimes);
   const totalFightTime = fight.end_time - fight.start_time;

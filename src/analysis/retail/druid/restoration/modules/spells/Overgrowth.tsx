@@ -11,10 +11,10 @@ import { formatNumber } from 'common/format';
 import { SpellLink } from 'interface';
 
 /**
- * **Overgrowth**
- * Spec Talent
+ * **过度生长**
+ * 专精天赋
  *
- * Apply Lifebloom, Rejuvenation, Wild Growth, and Regrowth's heal over time effects to an ally.
+ * 对一个盟友施加生命绽放、回春术、野性成长和愈合的持续治疗效果。
  */
 class Overgrowth extends Analyzer {
   static dependencies = {
@@ -38,20 +38,20 @@ class Overgrowth extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 根据天赋行设置的位置
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            In overall numbers this talent is typically very weak in raid, and you'd be better off
-            taking <SpellLink spell={TALENTS_DRUID.SPRING_BLOSSOMS_TALENT} /> instead. Its sole use
-            is high HPCT tank healing in dungeons to allow more DPS time.
+            总体来说，这个天赋在团队副本中的表现通常很弱，建议你选择{' '}
+            <SpellLink spell={TALENTS_DRUID.SPRING_BLOSSOMS_TALENT} /> 代替。它唯一的作用是在
+            地下城中对坦克进行高效治疗，以争取更多的输出时间。
           </>
         }
       >
         <BoringSpellValueText spell={TALENTS_DRUID.OVERGROWTH_TALENT}>
           {formatNumber(this.averageHealingPerCast)}
-          <small> avg. effective healing per cast</small>
+          <small> 平均每次施放的有效治疗量</small>
         </BoringSpellValueText>
       </Statistic>
     );

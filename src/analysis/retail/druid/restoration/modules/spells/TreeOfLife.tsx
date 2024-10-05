@@ -36,25 +36,23 @@ const WG_INCREASE = 8 / 6 - 1;
 const TOL_DURATION = 30000;
 const BUFFER = 500;
 
-// have to be careful about applying stacking boosts so we don't double count. Arbitrarily considering all boost to be applied "first"
-// for example, lets say a rejuv tick during ToL heals for 1000 base, but is boosted by 1.15 * 1.5 => 1725... a total of 725 raw boost
-// if we count each as a seperate boost, we get 1.15 => 225 boost, 1.5 => 575, total of 800 ... the overlapping boost was double counted
-// we correct for this by dividing out the all boost before calcing either the rejuv boost or the wg increase
+// 需要注意应用叠加增益时避免双重计算。为了简化处理，所有增益都优先应用"整体增益"
+// 举例来说，在生命之树形态下，一个回春术的基础治疗为1000，但其受到1.15 * 1.5的加成，治疗量为1725
+// 如果我们单独计算每个增益，得到1.15 => 225提升，1.5 => 575提升，总共800的提升。重复计算了重叠的增益
+// 我们通过在计算回春术或野性成长的提升时，先除去整体增益来修正这一问题
 
 /**
- * **Incarnation: Tree of Life**
- * Spec Talent Tier 8
+ * **化身：生命之树**
+ * 专精天赋 第8层
  *
- * Shapeshift into the Tree of Life, increasing healing done by 15%, increasing armor by 120%,
- * and granting protection from Polymorph effects.
- * Functionality of Rejuvenation, Wild Growth, Regrowth, Entangling Roots, and Wrath is enhanced.
- * Lasts 30 sec. You may shapeshift in and out of this form for its duration.
+ * 变形为生命之树，增加治疗效果15%，提高护甲120%，并免疫变形效果。
+ * 回春术、野性成长、愈合、纠缠根须和愤怒的功能得到增强。持续30秒。你可以在其持续时间内随意变形。
  *
- * Tree of Life healing bonuses:
- *  - ALL: +15% healing
- *  - Rejuv: +50% healing and -30% mana
- *  - Regrowth: instant
- *  - Wild Growth: +2 targets
+ * 生命之树的治疗加成：
+ *  - 整体：+15%治疗量
+ *  - 回春术：+50%治疗量，法力值消耗减少30%
+ *  - 愈合：瞬发
+ *  - 野性成长：额外影响2个目标
  */
 class TreeOfLife extends Analyzer {
   static dependencies = {
@@ -74,14 +72,12 @@ class TreeOfLife extends Analyzer {
   hardcast: TolAccumulator = {
     allBoostHealing: 0,
     rejuvBoostHealing: 0,
-    extraWgsAttribution: HotTrackerRestoDruid.getNewAttribution('ToL Hardcast: Extra WGs'),
+    extraWgsAttribution: HotTrackerRestoDruid.getNewAttribution('硬读条生命之树：额外野性成长'),
   };
   reforestation: TolAccumulator = {
     allBoostHealing: 0,
     rejuvBoostHealing: 0,
-    extraWgsAttribution: HotTrackerRestoDruid.getNewAttribution(
-      'ToL from Reforestation: Extra WGs',
-    ),
+    extraWgsAttribution: HotTrackerRestoDruid.getNewAttribution('重植术生命之树：额外野性成长'),
   };
 
   constructor(options: Options) {
@@ -111,10 +107,9 @@ class TreeOfLife extends Analyzer {
     this.addEventListener(Events.fightend, this.checkActive);
   }
 
-  // TODO better way of handling this now that both are talents in DF?
+  // 处理这种情况，现在生命之树和重植术都可以成为天赋
   checkActive() {
-    // only stay active for suggestion / stat if player actually has Talent -
-    // we need this to calc to check for 4pc, which is why we don't check active at the start
+    // 只有在玩家实际拥有天赋时才保持活跃状态
     this.active = this.selectedCombatant.hasTalent(TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT);
   }
 
@@ -124,25 +119,25 @@ class TreeOfLife extends Analyzer {
 
   onApplyTol(event: ApplyBuffEvent) {
     if (isFromHardcast(event)) {
-      this.lastHardcastTimestamp = event.timestamp; // set here and on cast to avoid event ordering mishaps
+      this.lastHardcastTimestamp = event.timestamp; // 设定时间戳，防止事件排序错误
     }
   }
 
   /**
-   * Gets the tracking accumulator for the current ToL, if there is one
+   * 获取当前生命之树的增益追踪器
    */
   _getAccumulator(event: Event<any>) {
     if (!this.selectedCombatant.hasBuff(TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT.id)) {
-      return null; // ToL isn't active, no accumulator
+      return null; // 生命之树未激活，返回空
     } else if (!this.selectedCombatant.hasTalent(TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT)) {
-      return this.reforestation; // player doesn't have the ToL talent so this must be from the set 4pc
+      return this.reforestation; // 玩家没有生命之树天赋，来自重植术
     } else if (
       this.lastHardcastTimestamp !== null &&
       this.lastHardcastTimestamp + TOL_DURATION + BUFFER >= event.timestamp
     ) {
-      return this.hardcast; // player hardcast ToL within buff duration, so this is a hardcast
+      return this.hardcast; // 玩家在生命之树持续时间内施放了硬读条
     } else {
-      return this.reforestation; // player didn't hardcast within buff duration, so this is the set 4pc
+      return this.reforestation; // 玩家没有在持续时间内硬读条，来自重植术
     }
   }
 
@@ -165,8 +160,7 @@ class TreeOfLife extends Analyzer {
     if (!accumulator) {
       return;
     }
-    // ToL causes extra WG buffs to be applied - rather than arbitrarily deciding which HoTs
-    // were the "extra" ones, we instead partially attribute every WG applied during ToL
+    // 生命之树会对额外目标施加野性成长 - 我们对每个在生命之树期间施加的野性成长都部分归因
     this.hotTracker.addBoostFromApply(
       accumulator.extraWgsAttribution,
       WG_INCREASE / ALL_MULT,
@@ -194,23 +188,20 @@ class TreeOfLife extends Analyzer {
     );
   }
 
-  // TODO implement (what do we need?)
-  /** Guide fragment showing a breakdown of each Incarnation: Tree of Life cast */
+  /** 指导说明片段，展示每次化身：生命之树的使用细节 */
   get guideCastBreakdown() {
     const explanation = (
       <p>
         <strong>
           <SpellLink spell={TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT} />
         </strong>{' '}
-        is a long duration healing boost with low immediate impact. It should be planned around
-        periods of high sustained healing. Due to its long duration and Rejuvenation mana discount,
-        it should be cast at the start of your ramp.
+        是一个持续时间长、即时影响较低的治疗增益，应计划在高持续治疗需求期间使用。由于其持续时间较长，并且回春术的法力值折扣，它应在治疗准备阶段开始施放。
       </p>
     );
 
     const data = (
       <p>
-        <strong>EXPANDABLE PER-CAST BREAKDOWN COMING SOON!</strong>
+        <strong>逐次使用明细功能即将上线！</strong>
       </p>
     );
 
@@ -221,33 +212,34 @@ class TreeOfLife extends Analyzer {
     when(this.suggestionThresholds).addSuggestion((suggest, actual, recommended) =>
       suggest(
         <>
-          Your <SpellLink spell={TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT} /> is not providing
-          you much throughput. You may want to plan your CD usage better or pick another talent.
+          你的
+          <SpellLink spell={TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT} />
+          未能为你提供足够的治疗量。你可能需要更好地规划技能使用，或选择其他天赋。
         </>,
       )
         .icon(TALENTS_DRUID.INCARNATION_TREE_OF_LIFE_TALENT.icon)
         .actual(
           defineMessage({
             id: 'druid.restoration.suggestions.treeOfLife.efficiency',
-            message: `${formatPercentage(actual)}% healing`,
+            message: `${formatPercentage(actual)}% 治疗量`,
           }),
         )
-        .recommended(`>${formatPercentage(recommended, 0)}% is recommended`),
+        .recommended(`建议治疗量 > ${formatPercentage(recommended, 0)}%`),
     );
   }
 
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(8)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(8)} // 基于天赋层数的数字
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            The displayed healing number is the sum of several benefits, listed below:
+            显示的治疗数字是以下多个增益的总和：
             <ul>
               <li>
-                Overall Increased Healing:{' '}
+                整体治疗量提升:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(this.hardcast.allBoostHealing),
@@ -256,7 +248,7 @@ class TreeOfLife extends Analyzer {
                 </strong>
               </li>
               <li>
-                Rejuv Increased Healing:{' '}
+                回春术治疗量提升:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(this.hardcast.rejuvBoostHealing),
@@ -265,7 +257,7 @@ class TreeOfLife extends Analyzer {
                 </strong>
               </li>
               <li>
-                Increased Wild Growths:{' '}
+                野性成长治疗量提升:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(
@@ -288,7 +280,7 @@ class TreeOfLife extends Analyzer {
   }
 }
 
-// data shuttle for keeping track of bonuses attributed to ToL
+// 用于追踪归因于生命之树的增益
 interface TolAccumulator {
   allBoostHealing: number;
   rejuvBoostHealing: number;

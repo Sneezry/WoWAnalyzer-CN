@@ -10,10 +10,10 @@ import { TALENTS_DRUID } from 'common/TALENTS';
 import Mastery from 'analysis/retail/druid/restoration/modules/core/Mastery';
 
 /**
- * **Spring Blossoms**
- * Spec Talent Tier 8
+ * **春暖花开**
+ * 专精天赋 第8层
  *
- * Each target healed by Efflorescence is healed for an additional (X% of Spell power) over 6 sec.
+ * 每个受到百花齐放治疗的目标会在6秒内额外恢复（X%法术强度）的生命值。
  */
 class SpringBlossoms extends Analyzer {
   static dependencies = {
@@ -43,18 +43,17 @@ class SpringBlossoms extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(8)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(8)} // 根据天赋行编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the sum of the direct healing from Spring Blossoms and the healing enabled by
-            Spring Blossom's extra mastery stack.
+            这是来自春暖花开的直接治疗量和其额外的精通叠加产生的治疗总和。
             <ul>
               <li>
-                Direct: <strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
+                直接治疗: <strong>{this.owner.formatItemHealingDone(this.directHealing)}</strong>
               </li>
               <li>
-                Mastery: <strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
+                精通治疗: <strong>{this.owner.formatItemHealingDone(this.masteryHealing)}</strong>
               </li>
             </ul>
           </>

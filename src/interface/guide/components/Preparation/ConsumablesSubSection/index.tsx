@@ -13,10 +13,11 @@ interface Props {
   recommendedFoods?: Spell[];
   expansion?: Expansion;
 }
+
 const ConsumablesSubSection = ({ recommendedFlasks, recommendedFoods, expansion }: Props) => {
   return (
-    <SubSection title="Consumables">
-      <p>Using consumables appropriately is an easy way to improve your throughput.</p>
+    <SubSection title="消耗品">
+      <p>适当地使用消耗品是提升输出的简单方法。</p>
       <SideBySidePanels>
         <FoodPanel recommendedFoods={recommendedFoods} expansion={expansion} />
         <PotionPanel expansion={expansion} />
@@ -25,7 +26,7 @@ const ConsumablesSubSection = ({ recommendedFlasks, recommendedFoods, expansion 
 
       {expansion && isClassicExpansion(expansion) && (
         <AlertWarning style={{ marginTop: '1em' }}>
-          Food and Flasks do not always appear in logs in Cataclysm Classic, even if they are used!
+          在《大地的裂变经典版》中，即使使用了食物和药水，它们在日志中也不一定会出现！
         </AlertWarning>
       )}
     </SubSection>

@@ -16,11 +16,10 @@ import { SpellLink } from 'interface';
 const PROC_PROB = 0.6;
 
 /**
- * **Power of the Archdruid**
- * Spec Talent Tier 10
+ * **大德鲁伊之力**
+ * 专精天赋 第10层
  *
- * Wild Growth has a 40% chance to cause your next Rejuvenation or Regrowth
- * to apply to 2 additional allies within 20 yards of the target.
+ * 野性成长有40%的几率使你的下一个回春术或愈合对目标20码范围内的两个额外盟友生效。
  */
 class PowerOfTheArchdruid extends Analyzer {
   static dependencies = {
@@ -29,8 +28,8 @@ class PowerOfTheArchdruid extends Analyzer {
 
   hotAttributor!: HotAttributor;
 
-  wgCasts = 0;
-  procs = 0;
+  wgCasts = 0; // 野性成长施法次数
+  procs = 0; // 触发次数
 
   constructor(options: Options) {
     super(options);
@@ -91,32 +90,31 @@ class PowerOfTheArchdruid extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 根据天赋行位置
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the healing attributable to the rejuvenations and regrowths spawned by the Power
-            of the Archdruid talent. This amount includes the mastery benefit.
+            这是由大德鲁伊之力天赋触发的回春术和愈合造成的治疗量，包括专精加成：
             <ul>
               <li>
-                Created <strong>{this.rejuvsCreated}</strong>{' '}
-                <SpellLink spell={SPELLS.REJUVENATION} /> HoTs for{' '}
+                生成了 <strong>{this.rejuvsCreated}</strong> 个{' '}
+                <SpellLink spell={SPELLS.REJUVENATION} /> 持续治疗，总治疗量为{' '}
                 <strong>{this.owner.formatItemHealingDone(this.rejuvProcHealing)}</strong>
               </li>
               <li>
-                Created <strong>{this.regrowthsCreated}</strong>{' '}
-                <SpellLink spell={SPELLS.REGROWTH} /> HoTs and Heals for{' '}
+                生成了 <strong>{this.regrowthsCreated}</strong> 个{' '}
+                <SpellLink spell={SPELLS.REGROWTH} /> 持续治疗和直接治疗，总治疗量为{' '}
                 <strong>{this.owner.formatItemHealingDone(this.regrowthProcHealing)}</strong>
               </li>
             </ul>
             <br />
-            You got <strong>{this.procs}</strong> procs over <strong>{this.wgCasts}</strong> casts,
-            for a proc rate of <strong>{formatPercentage(this.procRate, 1)}%</strong>. This is a{' '}
+            你总共获得了 <strong>{this.procs}</strong> 次触发，基于 <strong>{this.wgCasts}</strong>{' '}
+            次施放， 触发率为 <strong>{formatPercentage(this.procRate, 1)}%</strong>。这是一个{' '}
             <strong>
-              {formatNth(Number(formatPercentage(this.procRatePercentile, 0)))} percentile
+              {formatNth(Number(formatPercentage(this.procRatePercentile, 0)))} 百分位
             </strong>{' '}
-            result.
+            的结果。
           </>
         }
       >

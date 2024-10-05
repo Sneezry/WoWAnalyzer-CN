@@ -19,33 +19,31 @@ const deps = {
 };
 
 /**
- * **Grove Guardians**
- * Spec Talent Tier 6
+ * **林地守护者**
+ * 专精天赋 第六层
  *
- * Summons a Treant which will immediately cast Swiftmend on your current target, healing for X.
- * The Treant will cast Nourish on that target or a nearby ally periodically,
- * healing for X. Lasts 15 sec.
+ * 召唤一个树人，立即对当前目标施放迅捷治愈，治疗X点生命值。
+ * 树人将周期性地对该目标或附近的盟友施放愈合，治疗X点生命值，持续15秒。
  *
- * **Wild Synthesis**
- * Spec Talent Tier 7
+ * **野性合成**
+ * 专精天赋 第七层
  *
- * Treants from Grove Guardians also cast Wild Growth immediately when summoned,
- * healing 5 allies within 40 yds for X over 7 sec.
+ * 由林地守护者召唤的树人将立即施放野性成长，治疗40码内的5个盟友，持续7秒。
  */
 export default class GroveGuardians extends Analyzer.withDependencies(deps) {
   hasWildSynthesis: boolean;
   hasTolCenariusGuidance: boolean;
 
-  /** Total healing done by hardcast GG's swiftmend */
+  /** 由手动施放的林地守护者（树人）施放的迅捷治愈总治疗量 */
   hardcastSwiftmendHealing: number = 0;
-  /** Total healing done by hardcast GG's nourish */
+  /** 由手动施放的林地守护者（树人）施放的愈合总治疗量 */
   hardcastNourishHealing: number = 0;
-  /** Total healing done by hardcast GG's wild growth */
+  /** 由手动施放的林地守护者（树人）施放的野性成长总治疗量 */
   hardcastWildGrowthHealing: number = 0;
-  /** Total healing done by GGs summoned by Cenarius Guidance (all spells) */
+  /** 由塞纳里奥指引召唤的树人造成的所有治疗量 */
   cgHealing: number = 0;
 
-  /** Set of GG instance numbers that were hardcast. If not in the set, we presume it was summoned by CG. */
+  /** 记录手动施放的树人实例编号。如果不在集合中，则推测是由塞纳里奥指引召唤的。 */
   hardcastInstances: Set<number> = new Set<number>();
 
   constructor(options: Options) {
@@ -98,8 +96,7 @@ export default class GroveGuardians extends Analyzer.withDependencies(deps) {
         <b>
           <SpellLink spell={TALENTS_DRUID.GROVE_GUARDIANS_TALENT} />
         </b>{' '}
-        is an off-GCD heal that interacts minimally with the rest of your kit. Use it whenever extra
-        throughput is needed. It's very efficient - avoid overcapping on charges.
+        是一个不占用GCD的治疗技能，与你的其他技能的互动很少。当你需要额外的治疗输出时使用它。这个技能非常高效——避免积累过多的充能。
       </p>
     );
 
@@ -117,20 +114,19 @@ export default class GroveGuardians extends Analyzer.withDependencies(deps) {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(6)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(6)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            This is the sum of the direct healing from the base Grove Guardians (Swiftmend +
-            Nourish)
-            {this.hasWildSynthesis && ' and the extra spell added by Wild Synthesis (Wild Growth).'}
+            这是林地守护者（迅捷治愈 + 愈合）的直接治疗总和
+            {this.hasWildSynthesis && ' 以及由野性合成添加的额外技能（野性成长）。'}
             {this.hasTolCenariusGuidance && (
               <>
                 {' '}
-                This value does <strong>not</strong> include healing from Grove Guardians summoned
-                by <SpellLink spell={TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT} /> - this is only the
-                hardcast number.
+                此数值<strong>不</strong>包括由{' '}
+                <SpellLink spell={TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT} />{' '}
+                召唤的林地守护者的治疗量 ——这只是手动施放的数值。
               </>
             )}
             <ul>

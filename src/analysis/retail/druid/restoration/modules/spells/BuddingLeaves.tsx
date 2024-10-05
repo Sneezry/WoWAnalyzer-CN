@@ -19,21 +19,21 @@ const MAX_STACKS = 15;
 const BLOOM_BOOST_PER_RANK = 0.075;
 
 /**
- * **Budding Leaves**
- * Spec Talent
+ * **萌芽叶片**
+ * 专精天赋
  *
- * Lifebloom's healing is increased by (3 / 6)% each time it heals, up to (45 / 90)%.
- * Also increases Lifebloom's final bloom amount by (7.5 / 15)%.
+ * 生命绽放的治疗效果每次治疗都会提高(3 / 6)%，最多提高至(45 / 90)%。
+ * 同时增加生命绽放最后绽放的治疗效果(7.5 / 15)%。
  * ------------------------------------
- * TODO bugged? on live to cap out at 37/75% - remove this note if they fix it and change numbers if they don't
+ * TODO 在正式服中似乎有问题，目前的上限是37/75% - 如果修复了这个问题，请移除此注释并根据情况修改数值
  */
 export default class BuddingLeaves extends Analyzer {
   ranks: number;
 
-  /** Mapping from encoded target ID to number of LB boost stacks they have */
+  /** 记录每个目标的生命绽放增益层数 */
   stacksByTarget: Map<string, number> = new Map<string, number>();
 
-  /** Total healing attributable to this talent */
+  /** 由该天赋导致的总治疗量 */
   totalHealing: number = 0;
 
   constructor(options: Options) {
@@ -42,7 +42,7 @@ export default class BuddingLeaves extends Analyzer {
     this.ranks = this.selectedCombatant.getTalentRank(TALENTS_DRUID.BUDDING_LEAVES_TALENT);
     this.active = this.ranks > 0;
 
-    // confirmed refresh doesn't reset stacks, so no need to look at refreshes
+    // 确认刷新不重置堆叠，因此不需要监听刷新事件
     this.addEventListener(
       Events.removebuff.by(SELECTED_PLAYER).spell(lifebloomSpell(this.selectedCombatant)),
       this.onLbRemove,
@@ -58,30 +58,30 @@ export default class BuddingLeaves extends Analyzer {
   }
 
   onLbRemove(event: RemoveBuffEvent) {
-    // stacks reset when lb falls off
-    DEBUG && console.log(`BuddingLeaves stacks fall from ${this.owner.getTargetName(event)}`);
+    // 当生命绽放效果消失时，重置堆叠
+    DEBUG && console.log(`萌芽叶片堆叠从 ${this.owner.getTargetName(event)} 重置`);
     this.stacksByTarget.set(encodeEventTargetString(event) || '', 0);
   }
 
   onLbHotHeal(event: HealEvent) {
-    // calc boost to current tick based on stacks on target
+    // 根据目标的当前堆叠计算当前治疗量的增益
     const currStacks = this.stacksByTarget.get(encodeEventTargetString(event) || '') || 0;
     DEBUG &&
       console.log(
-        `BuddingLeaves tick heal w/ ${currStacks} stacks on ${this.owner.getTargetName(event)}`,
+        `萌芽叶片在 ${this.owner.getTargetName(event)} 上的 ${currStacks} 层堆叠进行治疗`,
       );
     this.totalHealing += calculateEffectiveHealing(
       event,
       currStacks * this.ranks * HOT_BOOST_PER_RANK_PER_STACK,
     );
 
-    // increment stacks (up to cap)
+    // 增加堆叠（达到上限为止）
     const newStacks = Math.min(MAX_STACKS, currStacks + 1);
     this.stacksByTarget.set(encodeEventTargetString(event) || '', newStacks);
   }
 
   onLbBloomHeal(event: HealEvent) {
-    DEBUG && console.log(`BuddingLeaves bloom heal on ${this.owner.getTargetName(event)}`);
+    DEBUG && console.log(`萌芽叶片在 ${this.owner.getTargetName(event)} 上绽放治疗`);
     this.totalHealing += calculateEffectiveHealing(event, this.ranks * BLOOM_BOOST_PER_RANK);
   }
 
@@ -89,7 +89,7 @@ export default class BuddingLeaves extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(9)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(9)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
       >
         <TalentSpellText talent={TALENTS_DRUID.BUDDING_LEAVES_TALENT}>

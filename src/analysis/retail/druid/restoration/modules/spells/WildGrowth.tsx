@@ -16,15 +16,15 @@ import { GUIDE_CORE_EXPLANATION_PERCENT } from '../../Guide';
 import { QualitativePerformance } from 'parser/ui/QualitativePerformance';
 import CastSummaryAndBreakdown from 'interface/guide/components/CastSummaryAndBreakdown';
 
-/** Number of targets WG must effectively heal in order to be efficient */
+/** 治疗三个以上目标的野性成长才是有效的 */
 const RECOMMENDED_EFFECTIVE_TARGETS_THRESHOLD = 3;
-/** Max time after WG apply to watch for high overhealing */
+/** 检测高过量治疗的最大时间间隔 */
 const OVERHEAL_BUFFER = 3000;
-/** Overheal percent within OVERHEAL_BUFFER of application that will count as 'too much' */
+/** 在施放后 {OVERHEAL_BUFFER} 时间内，治疗溢出的比例超过 {OVERHEAL_THRESHOLD} 将视为过量治疗 */
 const OVERHEAL_THRESHOLD = 0.6;
 
 /**
- * Tracks stats relating to Wild Growth
+ * 追踪与野性成长相关的统计数据
  */
 class WildGrowth extends Analyzer {
   static dependencies = {
@@ -34,25 +34,25 @@ class WildGrowth extends Analyzer {
   abilityTracker!: AbilityTracker;
 
   recentWgTimestamp: number = 0;
-  /** Tracker for the overhealing on targets hit by a recent hardcast Wild Growth, indexed by targetID */
+  /** 追踪最近一次野性成长硬施法目标的过量治疗，按目标ID索引 */
   recentWgTargetHealing: {
     [key: number]: { appliedTimestamp: number; total: number; overheal: number };
   } = {};
 
-  /** Total Wild Growth hardcasts (not tallied until the rest of the fields) */
+  /** 野性成长硬施法的总次数（在统计完成前不计入其他字段） */
   totalCasts = 0;
-  /** Total Wild Growth HoTs applied by hardcasts */
+  /** 野性成长硬施法应用的HoTs总数 */
   totalHardcastHits = 0;
-  /** Total Wild Growth HoTs applied by hardcasts that didn't overheal too much early */
+  /** 有效的野性成长HoTs数量 */
   totalEffectiveHits = 0;
-  /** Wild Growth hardcasts that were 'ineffective' */
+  /** 无效的野性成长施法次数 */
   ineffectiveCasts = 0;
-  /** Wild Growth hardcasts that hit too many total targets (effective or not) */
+  /** 命中目标过少的施法次数 */
   tooFewHitsCasts = 0;
-  /** Wild Growth hardcasts that had too much early overhealing */
+  /** 过量治疗过多的施法次数 */
   tooMuchOverhealCasts = 0;
 
-  /** Box row entry for each WG cast */
+  /** 每次野性成长施法的记录 */
   castEntries: BoxRowEntry[] = [];
 
   constructor(options: Options) {
@@ -63,11 +63,11 @@ class WildGrowth extends Analyzer {
   }
 
   onFightEnd() {
-    this._tallyLastCast(); // make sure the last cast is closed out
+    this._tallyLastCast(); // 确保最后一次施法被记录
   }
 
   onCastWg(event: CastEvent) {
-    this._tallyLastCast(); // make sure the previous cast is closed out
+    this._tallyLastCast(); // 确保前一次施法被记录
     this._trackNewCast(event);
   }
 
@@ -81,8 +81,7 @@ class WildGrowth extends Analyzer {
   }
 
   /**
-   * Follows the 'AppliedHeal' tag from the CastEvents to each of the HoTs it created,
-   * and initializes a recentWgTargetHealing entry for each.
+   * 从施法事件中追踪每个HoT的治疗，并为每个目标初始化 `recentWgTargetHealing` 项。
    */
   _trackNewCast(event: CastEvent) {
     this.recentWgTargetHealing = {};
@@ -99,12 +98,12 @@ class WildGrowth extends Analyzer {
   }
 
   /**
-   * Closes out the 'recent cast' tallies if there is one open and enough time has passed
+   * 关闭 '最近施法' 统计项（如果有未记录的施法且已过去足够时间）
    */
   _tallyLastCast() {
     this.totalCasts += 1;
     if (this.totalCasts === 1) {
-      return; // there is no last cast
+      return; // 没有上一施法
     }
 
     const hits = Object.values(this.recentWgTargetHealing);
@@ -121,12 +120,12 @@ class WildGrowth extends Analyzer {
       }
     }
 
-    // add cast perf entry
+    // 添加施法表现条目
     const value = effectiveHits >= 3 ? QualitativePerformance.Good : QualitativePerformance.Fail;
     const tooltip = (
       <>
-        @ <strong>{this.owner.formatTimestamp(this.recentWgTimestamp)}</strong>, Hits:{' '}
-        <strong>{hits.length}</strong>, Effective: <strong>{effectiveHits}</strong>
+        时间 <strong>{this.owner.formatTimestamp(this.recentWgTimestamp)}</strong>, 命中:{' '}
+        <strong>{hits.length}</strong>, 有效命中: <strong>{effectiveHits}</strong>
       </>
     );
     this.castEntries.push({ value, tooltip });
@@ -140,7 +139,7 @@ class WildGrowth extends Analyzer {
     return this.abilityTracker.getAbility(SPELLS.REJUVENATION.id).casts || 0;
   }
 
-  /** Guide subsection describing the proper usage of Wild Growth */
+  /** 指导野性成长的正确使用方式 */
   get guideSubsection(): JSX.Element {
     const explanation = (
       <>
@@ -148,13 +147,9 @@ class WildGrowth extends Analyzer {
           <b>
             <SpellLink spell={SPELLS.WILD_GROWTH} />
           </b>{' '}
-          is your best healing spell when multiple raiders are injured. It quickly heals a lot, but
-          has a high mana cost. Use Wild Growth when there are at least 3 injured targets.
+          是你在团队成员受伤时最好的治疗法术。它可以快速治疗多个目标，但代价是高法力消耗。请在至少有3个受伤目标时使用野性成长。
         </p>
-        <p>
-          Remember that only allies within 30 yds of the primary target can be hit - don't cast this
-          on an isolated player!
-        </p>
+        <p>记住，只有距离主要目标30码以内的盟友才能被治疗——不要对孤立的玩家使用！</p>
       </>
     );
 
@@ -165,9 +160,8 @@ class WildGrowth extends Analyzer {
           castEntries={this.castEntries}
           badExtraExplanation={
             <>
-              effective on fewer than three targets. A hit is considered "ineffective" if over the
-              first {(OVERHEAL_BUFFER / 1000).toFixed(0)} seconds it did more than{' '}
-              {formatPercentage(OVERHEAL_THRESHOLD, 0)}% overhealing
+              少于三个目标的有效命中。我们认为，在施法后的 {(OVERHEAL_BUFFER / 1000).toFixed(0)}{' '}
+              秒内 过量治疗超过 {formatPercentage(OVERHEAL_THRESHOLD, 0)}% 的命中是无效的。
             </>
           }
         />
@@ -181,23 +175,20 @@ class WildGrowth extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.CORE(19)} // chosen for fixed ordering of general stats
+        position={STATISTIC_ORDER.CORE(19)} // 为常规统计数据选择的固定顺序
         tooltip={
           <>
-            This is the average number of effective hits per Wild Growth cast. Because its healing
-            is so frontloaded, we consider a hit effective only if it does less than{' '}
-            {formatPercentage(OVERHEAL_THRESHOLD, 0)}% overhealing over its first{' '}
-            {(OVERHEAL_BUFFER / 1000).toFixed(0)} seconds.
+            这是每次野性成长施法的平均有效命中数。由于它的治疗量在前期效果显著，我们仅将过量治疗少于{' '}
+            {formatPercentage(OVERHEAL_THRESHOLD, 0)}% 的命中视为有效命中。
             <br /> <br />
-            This statistic only considers hardcasts, Wild Growths procced by Convoke the Spirits are
-            ignored.
+            该统计仅考虑硬施法，因灵魂链接而触发的野性成长将被忽略。
           </>
         }
       >
         <BoringValue
           label={
             <>
-              <SpellIcon spell={SPELLS.WILD_GROWTH} /> Average Effective Wild Growth Hits
+              <SpellIcon spell={SPELLS.WILD_GROWTH} /> 平均有效野性成长命中
             </>
           }
         >

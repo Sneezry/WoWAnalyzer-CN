@@ -45,11 +45,11 @@ const WILD_GROWTH_HEALING_INCREASE = 0.5;
 const debug = false;
 
 /**
- * **Soul of the Forest**
- * Spec Talent Tier 6
+ * **森林之魂**
+ * 专精天赋 第6层
  *
- * Swiftmend increases the healing of your next Regrowth or Rejuvenation by 150%,
- * or your next Wild Growth by 50%.
+ * 迅捷治愈增加你下一个愈合或回春术的治疗效果150%，
+ * 或下一个野性成长的治疗效果50%。
  */
 class SoulOfTheForest extends Analyzer {
   static dependencies = {
@@ -60,19 +60,19 @@ class SoulOfTheForest extends Analyzer {
 
   sotfRejuvInfo = {
     boost: REJUVENATION_HEALING_INCREASE,
-    attribution: HotTrackerRestoDruid.getNewAttribution('SotF Rejuvenation'),
+    attribution: HotTrackerRestoDruid.getNewAttribution('森林之魂 回春术'),
     hardcastUses: 0,
     convokeUses: 0,
   };
   sotfRegrowthInfo = {
     boost: REGROWTH_HEALING_INCREASE,
-    attribution: HotTrackerRestoDruid.getNewAttribution('SotF Regrowth'),
+    attribution: HotTrackerRestoDruid.getNewAttribution('森林之魂 愈合'),
     hardcastUses: 0,
     convokeUses: 0,
   };
   sotfWgInfo = {
     boost: WILD_GROWTH_HEALING_INCREASE,
-    attribution: HotTrackerRestoDruid.getNewAttribution('SotF Wild Growth'),
+    attribution: HotTrackerRestoDruid.getNewAttribution('森林之魂 野性成长'),
     hardcastUses: 0,
     convokeUses: 0,
   };
@@ -86,7 +86,7 @@ class SoulOfTheForest extends Analyzer {
   lastTalliedSotF?: RemoveBuffEvent;
   lastBuffFromHardcast: boolean = false;
 
-  /** Box row entry for SotF use */
+  /** 检查森林之魂使用的条目 */
   useEntries: BoxRowEntry[] = [];
 
   constructor(options: Options) {
@@ -127,24 +127,24 @@ class SoulOfTheForest extends Analyzer {
   }
 
   /**
-   * Updates tracking logic then true iff the given event benefits from SotF
+   * 更新追踪逻辑，判断事件是否受森林之魂增益影响
    */
   onSotfConsume(event: ApplyBuffEvent | RefreshBuffEvent | HealEvent) {
-    // check if buffed (link from normalizer)
+    // 检查是否有增益
     const sotf: RemoveBuffEvent | undefined = buffedBySotf(event);
     if (!sotf) {
       return;
     }
 
-    // check source
+    // 检查来源
     const fromHardcast: boolean = isFromHardcast(event);
     const fromConvoke: boolean = !fromHardcast && isConvoking(this.selectedCombatant);
 
-    // tally healing
+    // 记录治疗量
     const procInfo = this.sotfSpellInfo[event.ability.guid];
     if (!procInfo) {
-      // should be impossible
-      console.error("Couldn't find spell info for SotF event!", event);
+      // 不应该出现的情况
+      console.error('无法找到森林之魂事件的法术信息！', event);
       return;
     }
 
@@ -154,7 +154,7 @@ class SoulOfTheForest extends Analyzer {
         procInfo.hardcastUses += 1;
         debug &&
           console.log(
-            'New HARDCAST ' +
+            '新的硬读条 ' +
               procInfo.attribution.name +
               ' @ ' +
               this.owner.formatTimestamp(event.timestamp, 1),
@@ -163,7 +163,7 @@ class SoulOfTheForest extends Analyzer {
         procInfo.convokeUses += 1;
         debug &&
           console.log(
-            'New CONVOKE ' +
+            '新的灵魂鸣唱 ' +
               procInfo.attribution.name +
               ' @ ' +
               this.owner.formatTimestamp(event.timestamp, 1),
@@ -173,7 +173,7 @@ class SoulOfTheForest extends Analyzer {
           procInfo.attribution.name +
             ' @ ' +
             this.owner.formatTimestamp(event.timestamp, 1) +
-            ' not from hardcast or convoke??',
+            ' 不是来自硬读条或灵魂鸣唱？？',
         );
       }
     }
@@ -190,28 +190,28 @@ class SoulOfTheForest extends Analyzer {
   }
 
   onSotfRemove(event: RemoveBuffEvent | RefreshBuffEvent) {
-    // Text to show in tooltip for this SotF usage. Won't be filled for Convoke generated ones!
+    // 显示在此森林之魂使用工具提示中的文字
     let useText: React.ReactNode;
     let value: QualitativePerformance = QualitativePerformance.Fail;
 
     if (event.type === EventType.RefreshBuff) {
       if (this.lastBuffFromHardcast) {
-        useText = 'Overwritten';
+        useText = '覆盖了';
         value = QualitativePerformance.Fail;
       }
       this.lastBuffFromHardcast = false;
     } else {
       const buffed = getSotfBuffs(event);
       if (buffed.length === 0) {
-        useText = 'Expired';
+        useText = '过期了';
         value = QualitativePerformance.Fail;
       } else {
         if (!isFromHardcast(buffed[0]) && !this.lastBuffFromHardcast) {
-          // SM during Convoke also consumed during Convoke - don't count it
+          // 在灵魂鸣唱期间使用的迅捷治愈，也在灵魂鸣唱期间消耗——不计算
           return;
         }
 
-        // even if generated during Convoke, we count it if consumed by hardcast
+        // 即使在灵魂鸣唱期间生成的，如果被硬读条消耗，也计算
         const firstGuid = buffed[0].ability.guid;
         if (
           firstGuid === SPELLS.REJUVENATION.id ||
@@ -226,13 +226,13 @@ class SoulOfTheForest extends Analyzer {
           useText = <SpellLink spell={SPELLS.WILD_GROWTH} />;
           value = QualitativePerformance.Good;
         } else {
-          console.warn('SOTF reported as consumed by unexpected spell ID: ' + firstGuid);
+          console.warn('森林之魂被消耗时，发现了未预期的法术ID：' + firstGuid);
         }
       }
       this.lastBuffFromHardcast = false;
     }
 
-    // fill in box entry if needed
+    // 如果需要，填充框条目
     if (useText !== undefined) {
       const tooltip = (
         <>
@@ -292,20 +292,22 @@ class SoulOfTheForest extends Analyzer {
     );
   }
 
-  /** Guide subsection describing the proper usage of Soul of the Forest */
+  /** 指导森林之魂正确使用的子部分 */
   get guideSubsection(): JSX.Element {
     const explanation = (
       <p>
         <strong>
           <SpellLink spell={TALENTS_DRUID.SOUL_OF_THE_FOREST_RESTORATION_TALENT} />
         </strong>{' '}
-        procs are highest value consumed with <SpellLink spell={SPELLS.WILD_GROWTH} />, but{' '}
-        <SpellLink spell={SPELLS.REJUVENATION} /> or <SpellLink spell={SPELLS.REGROWTH} /> are
-        acceptable when one target needs big healing.{' '}
+        触发时，使用
+        <SpellLink spell={SPELLS.WILD_GROWTH} />
+        的收益最高，但 <SpellLink spell={SPELLS.REJUVENATION} />或
+        <SpellLink spell={SPELLS.REGROWTH} />
+        在某个目标需要大量治疗时也可以接受。{' '}
         {this.selectedCombatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) && (
           <>
-            <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> can overwrite procs - always use your proc
-            before casting Convoke. Never let a proc expire.
+            <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />
+            会覆盖触发效果——在施放灵魂鸣唱之前，请务必使用触发效果。不要让触发效果过期。
           </>
         )}
       </p>
@@ -317,9 +319,9 @@ class SoulOfTheForest extends Analyzer {
           spell={TALENTS_DRUID.SOUL_OF_THE_FOREST_RESTORATION_TALENT}
           castEntries={this.useEntries}
           usesInsteadOfCasts
-          goodExtraExplanation={<>used on Wild Growth</>}
-          okExtraExplanation={<>used on Rejuvenation or Regrowth</>}
-          badExtraExplanation={<>proc expired or was overwritten</>}
+          goodExtraExplanation={<>用于野性成长</>}
+          okExtraExplanation={<>用于回春术或愈合</>}
+          badExtraExplanation={<>触发效果过期或被覆盖</>}
         />
       </div>
     );
@@ -331,17 +333,17 @@ class SoulOfTheForest extends Analyzer {
     return this.selectedCombatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) ? (
       <>
         {' '}
-        consumed <strong>{hardcastUses}</strong> hardcast /{' '}
-        <strong>{totalUses - hardcastUses}</strong> convoke :{' '}
+        消耗了 <strong>{hardcastUses}</strong> 次硬读条 /{' '}
+        <strong>{totalUses - hardcastUses}</strong> 次灵魂鸣唱：{' '}
         <strong>{formatPercentage(this.owner.getPercentageOfTotalHealingDone(healing), 1)}%</strong>{' '}
-        healing
+        的治疗量
       </>
     ) : (
       <>
         {' '}
-        consumed <strong>{totalUses}</strong> procs :{' '}
+        消耗了 <strong>{totalUses}</strong> 次触发效果：{' '}
         <strong>{formatPercentage(this.owner.getPercentageOfTotalHealingDone(healing), 1)}%</strong>{' '}
-        healing
+        的治疗量
       </>
     );
   }
@@ -350,11 +352,11 @@ class SoulOfTheForest extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(6)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(6)} // 基于天赋层数的数字
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            You used <strong>{this.totalUses}</strong> Soul of the Forest procs.
+            你使用了<strong>{this.totalUses}</strong>次森林之魂触发效果。
             <ul>
               <li>
                 <SpellLink spell={SPELLS.REJUVENATION} />

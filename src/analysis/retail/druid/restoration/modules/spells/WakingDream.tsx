@@ -11,13 +11,13 @@ import HotTrackerRestoDruid from 'analysis/retail/druid/restoration/modules/core
 import { calculateEffectiveHealing } from 'parser/core/EventCalculateLib';
 
 const BOOST_PER_REJUV = 0.08;
-const RATE_MULT = 1.25; // Ticks every 4 seconds instead of every 5
+const RATE_MULT = 1.25; // 每 4 秒而不是每 5 秒
 
 /**
- * **Waking Dream**
- * Spec Talent
+ * **醒梦**
+ * 专精天赋
  *
- * Ysera's Gift now heals every 4 sec and its healing is increased by 8% for each of your active Rejuvenations.
+ * 伊瑟拉的赐福现在每 4 秒治疗一次，且每个活跃的恢复法术使其治疗量增加 8%。
  */
 export default class WakingDream extends Analyzer {
   static dependencies = {
@@ -47,13 +47,12 @@ export default class WakingDream extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(4)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(4)} // 根据天赋行的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            This value is calculated from the healing boost due to Rejuvs out and estimates the
-            effect of faster tick rate by assuming a linear increase in healing.
+            该数值是根据施放恢复法术所带来的治疗增益计算得出，并通过假设治疗量线性增加来估计更快的治疗频率效果。
           </>
         }
       >

@@ -59,22 +59,22 @@ export default class Germination extends Analyzer.withDependencies({
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
             <p>
-              Out of <strong>{this.totalRejuvs}</strong> total{' '}
-              <SpellLink spell={SPELLS.REJUVENATION} /> applications, <strong>{this.germs}</strong>{' '}
-              were the 2nd on target (<SpellLink spell={SPELLS.REJUVENATION_GERMINATION} />)
+              在 <strong>{this.totalRejuvs}</strong> 次总共的{' '}
+              <SpellLink spell={SPELLS.REJUVENATION} /> 施放中，有 <strong>{this.germs}</strong>{' '}
+              次是同一个目标上的第二次施放（
+              <SpellLink spell={SPELLS.REJUVENATION_GERMINATION} />）
             </p>
             <p>
               <strong>
                 {formatPercentage(this.owner.getPercentageOfTotalHealingDone(extraDurationHealing))}
                 %
               </strong>{' '}
-              is the percentage of total healing attributable specifically to the extra 2 seconds of
-              Rejuv duration.
+              是由于额外2秒的回春术持续时间产生的治疗量占总治疗量的百分比。
             </p>
           </>
         }
@@ -84,7 +84,7 @@ export default class Germination extends Analyzer.withDependencies({
           <SpellIcon spell={SPELLS.REJUVENATION} /> {this.totalRejuvs}
           <br />
           <ItemPercentHealingDone amount={extraDurationHealing} />
-          <small> from +2 sec</small>
+          <small> 来自额外的2秒</small>
         </BoringSpellValueText>
       </Statistic>
     );

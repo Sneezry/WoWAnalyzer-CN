@@ -39,13 +39,13 @@ const NATURES_SWIFTNESS_BOOST = 1;
 const RECENT_FLOURISH_DURATION = 8_000;
 
 /**
- * Resto's extension to the Convoke the Spirits display. Includes healing attribution.
- * Convokable healing abilities:
- * * Rejuvenation - track apply/refresh - use HotTracker
- * * Regrowth - track apply/refresh - use HotTracker
- * * Swiftmend - track heal - directly attribute healing
- * * Wild Growth - track apply/refresh - use HotTracker
- * * Flourish - track apply/refresh - use integration with Flourish module
+ * 恢复德鲁伊“万灵之召”扩展模块。包括治疗归属。
+ * 可通过万灵之召施放的治疗技能：
+ * * 回春术 - 追踪应用/刷新 - 使用HotTracker
+ * * 愈合 - 追踪应用/刷新 - 使用HotTracker
+ * * 迅捷治愈 - 追踪治疗 - 直接归属治疗
+ * * 野性成长 - 追踪应用/刷新 - 使用HotTracker
+ * * 繁茂 - 通过与繁茂模块的集成追踪应用/刷新
  */
 class ConvokeSpiritsResto extends ConvokeSpirits {
   static dependencies = {
@@ -55,9 +55,9 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
 
   hotTracker!: HotTrackerRestoDruid;
 
-  /** Mapping from convoke cast number to a tracker for that cast - note that index zero will always be empty */
+  /** 记录每次万灵之召的追踪数据 - 注意索引0始终为空 */
   restoConvokeTracker: RestoConvokeCast[] = [];
-  /** Timestamp of the last Flourish cast (or null if there wasn't one) */
+  /** 上次繁茂施放的时间戳（如果没有则为null） */
   lastFlourishTimestamp?: number;
 
   constructor(options: Options) {
@@ -81,8 +81,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
         this.onFlourishCast,
       );
 
-    // Flourish healing is tracked from the Flourish module, which calls into this one to update
-    // the attribution. The cast tracker is just for overlap detection.
+    // 繁茂的治疗量通过繁茂模块追踪，该模块会调用此模块以更新归属。
   }
 
   onRestoHotApply(event: ApplyBuffEvent | RefreshBuffEvent) {
@@ -119,9 +118,9 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
   onConvoke(event: ApplyBuffEvent) {
     super.onConvoke(event);
 
-    const totalAttribution = HotTracker.getNewAttribution('Convoke #' + this.cast);
+    const totalAttribution = HotTracker.getNewAttribution('万灵之召 #' + this.cast);
     const flourishRateAttribution = { amount: 0 };
-    const nsAttribution = HotTracker.getNewAttribution("Nature's Swiftness Convoke #" + this.cast);
+    const nsAttribution = HotTracker.getNewAttribution('自然迅捷 万灵之召 #' + this.cast);
     const rejuvsOnCast =
       this.hotTracker.getHotCount(SPELLS.REJUVENATION.id) +
       this.hotTracker.getHotCount(SPELLS.REJUVENATION_GERMINATION.id);
@@ -164,7 +163,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
   }
 
   get convokeCount(): number {
-    // attributions start indexed from 1
+    // 归属索引从1开始
     return this.restoConvokeTracker.length - 1;
   }
 
@@ -180,7 +179,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
     return this.restoConvokeTracker.filter((cast) => cast.nsAttribution.healing !== 0).length;
   }
 
-  /** Guide fragment showing a breakdown of each Convoke cast */
+  /** 指南片段显示每次万灵之召施放的详细情况 */
   get guideCastBreakdown() {
     const hasCenariusGuidance = this.selectedCombatant.hasTalent(
       TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT,
@@ -193,24 +192,23 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
         <strong>
           <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />
         </strong>{' '}
-        is a powerful but somewhat random burst of healing.{' '}
+        是一个强力但带有随机性的爆发治疗技能。{' '}
         {hasCenariusGuidance && (
           <>
-            Due to <SpellLink spell={TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT} />, it also has a
-            decent chance of proccing <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />.
+            由于 <SpellLink spell={TALENTS_DRUID.CENARIUS_GUIDANCE_TALENT} />
+            ，它有很高的几率触发 <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />。
           </>
         )}{' '}
-        Its short cooldown and random nature mean its best used as it becomes available. The amount
-        of direct healing it provides{' '}
-        {hasCenariusGuidance && 'and possiblity of proccing Flourish '}means lightly ramping for a
-        Convoke is still worthwhile.
+        它的短冷却时间和随机性意味着它应在冷却完成后尽快使用。它提供的直接治疗量{' '}
+        {hasCenariusGuidance && '以及可能的繁茂触发 '}
+        使得在使用万灵之召之前进行轻微的积累仍然是值得的。
       </p>
     );
 
     const data = (
       <div>
-        <strong>Per-Cast Breakdown</strong>
-        <small> - click to expand</small>
+        <strong>每次施放的详细信息</strong>
+        <small> - 点击展开</small>
         {this.convokeTracker.map((cast, ix) => {
           const restoCast = this.restoConvokeTracker[ix];
           const castTotalHealing =
@@ -219,8 +217,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
           const header = (
             <>
               @ {this.owner.formatTimestamp(cast.timestamp)} &mdash;{' '}
-              <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> ({formatNumber(castTotalHealing)}{' '}
-              healing)
+              <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> ({formatNumber(castTotalHealing)} 治疗量)
             </>
           );
 
@@ -237,37 +234,35 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.WILD_GROWTH} /> ramp
+                <SpellLink spell={SPELLS.WILD_GROWTH} /> 积累
               </>
             ),
             result: <PassFailCheckmark pass={wgRamp} />,
-            details: <>({restoCast.wgsOnCast} HoTs active)</>,
+            details: <>（{restoCast.wgsOnCast} 个HoT激活）</>,
           });
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.REJUVENATION} /> ramp
+                <SpellLink spell={SPELLS.REJUVENATION} /> 积累
               </>
             ),
             result: <PassFailCheckmark pass={rejuvRamp} />,
-            details: <>({restoCast.rejuvsOnCast} HoTs active)</>,
+            details: <>（{restoCast.rejuvsOnCast} 个HoT激活）</>,
           });
           hasFlourish &&
             checklistItems.push({
               label: (
                 <>
-                  Avoid <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} /> clip{' '}
+                  避免 <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} /> 剪切{' '}
                   <Tooltip
                     hoverable
                     content={
                       <>
-                        When casting <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> and{' '}
-                        <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} /> together, the Convoke
-                        should ALWAYS go first. This is both because the Convoke could proc Flourish
-                        and cause you to clip your hardcast's buff, and also because Convoke
-                        produces a lot of HoTs which Flourish could extend. If you got an{' '}
-                        <i className="glyphicon glyphicon-remove fail-mark" /> here, it means you
-                        cast Flourish before this Convoke.
+                        当你施放 <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> 和{' '}
+                        <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />{' '}
+                        时，万灵之召应始终优先。因为万灵之召可能触发繁茂并导致你剪切你的施法增益，而且万灵之召产生大量HoT，繁茂可以延长这些HoT。如果这里显示
+                        <i className="glyphicon glyphicon-remove fail-mark" />
+                        ，意味着你在该万灵之召之前施放了繁茂。
                       </>
                     }
                   >
@@ -283,16 +278,15 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
             checklistItems.push({
               label: (
                 <>
-                  Sync with <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} />{' '}
+                  与 <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} /> 同步{' '}
                   <Tooltip
                     hoverable
                     content={
                       <>
-                        <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />
-                        's power is greatly increased when in Tree of Life form. With the{' '}
-                        <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} /> talent, you can
-                        reasonably get a proc about once every minute, so it is recommended to sync
-                        your procs with Convoke.
+                        <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />{' '}
+                        在生命之树形态下威力大幅增强。通过{' '}
+                        <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} />{' '}
+                        天赋，你可以大约每分钟触发一次，因此建议与万灵之召同步。
                       </>
                     }
                   >
@@ -327,7 +321,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
     return (
       <Statistic
         wide
-        position={STATISTIC_ORDER.OPTIONAL(8)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(8)} // 基于天赋层数的编号
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
@@ -335,21 +329,20 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
             {this.baseTooltip}
             <br />
             <br />
-            Healing amount is attributed by tracking the healing spells cast by Convoke
-            {hasCenariusGuidance && ', including possible Flourish casts'}. This amount includes
-            mastery benefit from the proceed HoTs.
+            治疗量是通过追踪万灵之召施放的治疗法术进行归属
+            {hasCenariusGuidance && '，包括可能触发的繁茂施放'}.
+            该治疗量包含通过触发的HoT获得的精通加成。
             {this.totalNsConvokeHealing !== 0 && (
               <>
                 <br />
                 <br />
-                In addition, you took advantage of the fact that{' '}
-                <SpellLink spell={SPELLS.NATURES_SWIFTNESS} /> boosts convoked Regrowth healing
-                without consuming the buff. Nature's swiftness was active during{' '}
+                此外，你利用了 <SpellLink spell={SPELLS.NATURES_SWIFTNESS} />{' '}
+                增强万灵之召的愈合治疗而不消耗增益的特性。自然迅捷在{' '}
                 <strong>
-                  {this.nsBoostedConvokeCount} out of {this.convokeCount}
+                  {this.nsBoostedConvokeCount} 次万灵之召中的 {this.convokeCount}
                 </strong>{' '}
-                casts, during which it boosted{' '}
-                <strong>{this.nsBoostedConvokeRegrowthCount} Regrowths</strong> and caused{' '}
+                次处于激活状态，并且提升了{' '}
+                <strong>{this.nsBoostedConvokeRegrowthCount} 次愈合</strong>，造成了{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(this.totalNsConvokeHealing),
@@ -357,7 +350,7 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
                   )}
                   %
                 </strong>{' '}
-                of total healing. This amount is included in the top-line Convoke healing amount.
+                的总治疗量。该治疗量已包含在万灵之召的总治疗量中。
               </>
             )}
           </>
@@ -367,11 +360,11 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
             <table className="table table-condensed">
               <thead>
                 <tr>
-                  <th>Cast #</th>
-                  <th>Time</th>
-                  <th>Form</th>
-                  <th>Healing</th>
-                  <th>Spells In Cast</th>
+                  <th>施放次数</th>
+                  <th>时间</th>
+                  <th>形态</th>
+                  <th>治疗量</th>
+                  <th>施放的法术</th>
                 </tr>
               </thead>
               <tbody>
@@ -409,21 +402,19 @@ class ConvokeSpiritsResto extends ConvokeSpirits {
   }
 }
 
-/** A tracker for resto specific things that happen in a single Convoke cast */
+/** 追踪恢复德鲁伊在一次万灵之召施放中的特定事件 */
 interface RestoConvokeCast {
-  /** The attribution object for all healing this Convoke cast causes */
+  /** 此次万灵之召造成的所有治疗的归属对象 */
   totalAttribution: Attribution;
-  /** A special tracker specifically for the rate-increase healing due to a Flourish
-   * procced by this Convoke cast */
+  /** 特别追踪由于繁茂触发的加速治疗 */
   flourishRateAttribution: MutableAmount;
-  /** Nature's Swiftness boosts convoked Regrowths but does not consume the buff.
-   * This attributor specifically tracks the healing due to this. */
+  /** 自然迅捷增强万灵之召的愈合治疗但不消耗增益。此对象特别追踪其带来的治疗。 */
   nsAttribution: Attribution;
-  /** The number of Wild Growths out at the moment this Convoke is cast */
+  /** 施放万灵之召时激活的野性成长数量 */
   wgsOnCast: number;
-  /** The number of Rejuvs out at the moment this Convoke is cast */
+  /** 施放万灵之召时激活的回春术数量 */
   rejuvsOnCast: number;
-  /** True iff the player flourished recently (you shouldn't do this, always Convoke first) */
+  /** 如果玩家最近施放了繁茂为true（不应这么做，万灵之召应优先施放） */
   recentlyFlourished: boolean;
 }
 

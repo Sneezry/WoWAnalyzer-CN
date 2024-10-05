@@ -12,10 +12,10 @@ import { isFromExpiringLifebloom } from 'analysis/retail/druid/restoration/norma
 import { SpellLink } from 'interface';
 
 /**
- * **Verdancy**
- * Spec Talent
+ * **绿色生机**
+ * 专精天赋
  *
- * When Lifebloom blooms, up to 3 targets within your Efflorescence are healed for X.
+ * 生命绽放绽放时，在百花齐放范围内最多3个目标会被治疗X点生命值。
  */
 class Verdancy extends Analyzer {
   static dependencies = {
@@ -56,33 +56,31 @@ class Verdancy extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(7)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(7)} // 根据天赋行编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            In order to maximize Verdancy healing, you need to consistently proc blooms and
-            consistently keep efflo under raiders.
+            为了最大化绿色生机的治疗效果，你需要频繁触发绽放，并始终保持百花齐放覆盖团队成员。
             <ul>
               <li>
-                Avg. hits per Bloom: <strong>{this.averageVerdancyHitsPerBloom.toFixed(1)}</strong>
+                每次绽放的平均命中数: <strong>{this.averageVerdancyHitsPerBloom.toFixed(1)}</strong>
               </li>
               {hasPhotosynthesis ? (
                 <>
                   <li>
-                    Natural Blooms:{' '}
-                    <strong>{this.owner.getPerMinute(this.naturalBlooms).toFixed(1)}</strong> per
-                    minute
+                    自然绽放:{' '}
+                    <strong>{this.owner.getPerMinute(this.naturalBlooms).toFixed(1)}</strong>{' '}
+                    次/分钟
                   </li>
                   <li>
-                    <SpellLink spell={TALENTS_DRUID.PHOTOSYNTHESIS_TALENT} /> Blooms:{' '}
-                    <strong>{this.owner.getPerMinute(this.photoBlooms).toFixed(1)}</strong> per
-                    minute
+                    <SpellLink spell={TALENTS_DRUID.PHOTOSYNTHESIS_TALENT} /> 绽放:{' '}
+                    <strong>{this.owner.getPerMinute(this.photoBlooms).toFixed(1)}</strong> 次/分钟
                   </li>
                 </>
               ) : (
                 <>
                   <li>
-                    Blooms per minute:{' '}
+                    每分钟绽放次数:{' '}
                     <strong>
                       {this.owner.getPerMinute(this.naturalBlooms + this.photoBlooms)}
                     </strong>

@@ -26,20 +26,19 @@ export type AplProblemData<T> = {
 
 export type ViolationExplainer<T> = {
   /**
-   * Examine the results of the APL check and produce a list of problems, each
-   * of which claims some of the detected mistakes.
+   * 检查APL检查结果并生成问题列表，每个问题声称检测到了一些错误。
    */
   claim: (apl: Apl, result: CheckResult) => Array<AplProblemData<T>>;
   /**
-   * Render an explanation of the overall claims made.
+   * 渲染所有问题的总体说明。
    *
-   * This is what shows in the "Most Common Problems" section of the guide.
+   * 这是在指南中的“最常见问题”部分显示的内容。
    */
   render: (problem: AplProblemData<T>, apl: Apl, result: CheckResult) => JSX.Element;
   /**
-   * Render a description of an individual violation. What was done wrong? What should be done differently?
+   * 渲染单个违规行为的描述。哪里做错了？应该如何更改？
    *
-   * This is what shows next to the timeline in the guide.
+   * 这是在指南的时间轴旁边显示的内容。
    */
   describe: (props: { apl: Apl; violation: Violation; result: CheckResult }) => JSX.Element | null;
 };
@@ -50,7 +49,7 @@ export const minClaimCount = (result: CheckResult): number =>
   Math.min(10, Math.floor((result.successes.length + result.violations.length) / 20));
 
 /**
- * Useful default for filtering out spurious / low value explanations. Requires that at least 10 violations are claimed, and at least 40% of rule-related events were violations.
+ * 过滤掉无意义或低价值的解释的有用默认值。要求至少认定10个违规行为，且规则相关事件中至少40％为违规。
  */
 const defaultClaimFilter = (
   result: CheckResult,
@@ -80,7 +79,7 @@ function TargetName({ event }: { event: AnyEvent }) {
   } else if (enemy && !friendly) {
     return <a href={npcTooltip(enemy.guid)}>{enemy.name}</a>;
   }
-  return <span className="spell-link-text">Unknown</span>;
+  return <span className="spell-link-text">未知</span>;
 }
 
 function EventTimestamp({ event }: { event: AnyEvent }) {
@@ -97,8 +96,8 @@ function EventTimestamp({ event }: { event: AnyEvent }) {
 
   return (
     <strong>
-      {minutes > 0 ? `${minutes}m ` : ''}
-      {seconds}s
+      {minutes > 0 ? `${minutes}分钟 ` : ''}
+      {seconds}秒
     </strong>
   );
 }
@@ -111,12 +110,12 @@ export const ActualCastDescription = ({
   omitTarget?: boolean;
 }) => (
   <>
-    At <EventTimestamp event={event} /> into the fight, you cast{' '}
+    在战斗开始后 <EventTimestamp event={event} /> 时，你施放了{' '}
     <SpellLink spell={event.ability.guid} />
     {!omitTarget && (event.targetID ?? 0) > 0 && (
       <>
         {' '}
-        on <TargetName event={event} />
+        对 <TargetName event={event} />
       </>
     )}
   </>
@@ -124,9 +123,9 @@ export const ActualCastDescription = ({
 
 const overcastFillers: ViolationExplainer<InternalRule> = {
   claim: (apl, result) => {
-    // only look for unconditional rules targeting a single spell in the bottom 3rd of the APL
+    // 仅查找目标为单一法术的无条件规则，且在APL的底部1/3部分
     //
-    // this code has filler-specific text, so we don't want to accidentally grab spells at the top of the APL
+    // 此代码具有与填充法术相关的特定文本，因此不希望意外捕获APL顶部的法术
     const unconditionalRules = apl.rules.filter(
       (rule, index) =>
         rule.condition === undefined &&
@@ -155,18 +154,17 @@ const overcastFillers: ViolationExplainer<InternalRule> = {
   },
   render: (claim) => (
     <Trans id="guide.apl.overcastFillers">
-      You frequently cast <SpellLink spell={spells(claim.data)[0].id} /> when more important spells
-      were available.
+      你经常在有更重要的法术可用时施放了 <SpellLink spell={spells(claim.data)[0].id} />。
     </Trans>
   ),
   describe: ({ violation }) => (
     <>
       <p>
-        <ActualCastDescription event={violation.actualCast} />.
+        <ActualCastDescription event={violation.actualCast} />。
       </p>
       <p>
-        This is a low-priority filler spell. You should instead cast a higher-priority spell like{' '}
-        <SpellLink spell={violation.expectedCast[0].id} />.
+        这是一个低优先级的填充法术。你应该施放更高优先级的法术，如{' '}
+        <SpellLink spell={violation.expectedCast[0].id} />。
       </p>
     </>
   ),
@@ -187,14 +185,13 @@ const droppedRule: ViolationExplainer<{ rule: InternalRule; spell: Spell }> = {
 
     return (
       Array.from(claimsByRule.entries())
-        // this mess separates multi-spell rules into their constituent spells so that the results are more specific.
-        // e.g. the "Cast Blackout Kick or Keg Smash" rule gets split into:
+        // 这个代码块将多法术规则拆分为各自的法术，以使结果更为具体
+        // 例如，“施放碎颅酒或劈酒”规则将拆分为：
         //
-        // - You frequently skipped casting Blackout Kick
-        // - You frequently skipped casting Keg Smash
+        // - 你经常跳过施放碎颅酒
+        // - 你经常跳过施放劈酒
         //
-        // but each gets considered independently, so if you're good at casting Keg
-        // Smash but not Blackout Kick, you only see Blackout Kick
+        // 但是每个法术都会单独处理，因此如果你擅长施放劈酒而不是碎颅酒，你只会看到关于碎颅酒的提示
         .flatMap(([rule, claims]) => {
           if (rule.spell.type === TargetType.Spell) {
             return [{ rule, claims, spell: rule.spell.target }];
@@ -228,30 +225,31 @@ const droppedRule: ViolationExplainer<{ rule: InternalRule; spell: Spell }> = {
   },
   render: (claim) => (
     <Trans id="guide.apl.droppedRule">
-      You frequently skipped casting <SpellLink spell={claim.data.spell.id} />
+      你经常跳过施放 <SpellLink spell={claim.data.spell.id} />
       {claim.data.rule.condition && (
         <>
           {' '}
-          <ConditionDescription prefix="when" rule={claim.data.rule} tense={Tense.Past} />
+          <ConditionDescription prefix="当" rule={claim.data.rule} tense={Tense.Past} />
         </>
       )}
-      .
+      。
     </Trans>
   ),
   describe: ({ violation }) => (
     <>
       <p>
-        <ActualCastDescription event={violation.actualCast} />.
+        <ActualCastDescription event={violation.actualCast} />。
       </p>
       <p>
         {violation.rule.condition ? (
           <>
-            <ConditionDescription prefix="Since" rule={violation.rule} tense={Tense.Past} />, you{' '}
+            <ConditionDescription prefix="由于" rule={violation.rule} tense={Tense.Past} />
+            ，你{' '}
           </>
         ) : (
-          'You '
+          '你 '
         )}
-        should instead have cast <SpellLink spell={violation.expectedCast[0].id} />.
+        应该施放 <SpellLink spell={violation.expectedCast[0].id} />。
       </p>
     </>
   ),

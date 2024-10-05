@@ -10,6 +10,7 @@ import Expansion, { CLASSIC_EXPANSION } from 'game/Expansion';
 interface Props {
   expansion?: Expansion;
 }
+
 const PotionPanel = ({ expansion }: Props) => {
   const UsePotionChecker = expansion === CLASSIC_EXPANSION ? ClassicPotionChecker : PotionChecker;
   const potionChecker = useAnalyzer(UsePotionChecker);
@@ -36,7 +37,7 @@ const PotionPanel = ({ expansion }: Props) => {
     <PerformanceRoundedPanel performance={performance}>
       <PanelHeader className="flex">
         <div className="flex-main">
-          <strong>Number of Potions Used</strong>
+          <strong>使用的药水数量</strong>
         </div>
         <div className="flex-sub">
           <Potion />
@@ -44,24 +45,23 @@ const PotionPanel = ({ expansion }: Props) => {
       </PanelHeader>
       {performance !== QualitativePerformance.Fail && (
         <p>
-          You used the appropriate amount of potions ({potionsUsed}/{maxPotions}) during this fight!
-          Good work!
+          您在这场战斗中使用了适量的药水（{potionsUsed}/{maxPotions}）！做得好！
         </p>
       )}
       {performance === QualitativePerformance.Fail && (
         <p>
-          You used {potionsUsed} combat {potionsUsed === 1 ? 'potion' : 'potions'} during this
-          encounter, but you could have used {maxPotions}. {suggestionMessage}
+          您在这次遭遇中使用了 {potionsUsed} {potionsUsed === 1 ? '瓶药水' : '瓶药水'}
+          ，但您本可以使用 {maxPotions}。{suggestionMessage}
         </p>
       )}
       {weakPotionsUsed > 0 && (
         <>
           <PanelHeader>
-            <strong>Quality of Potions Used</strong>
+            <strong>使用药水的质量</strong>
           </PanelHeader>
           <p>
-            You used {weakPotionsUsed} weak {weakPotionsUsed === 1 ? 'potion' : 'potions'}. Use{' '}
-            <ItemLink id={strongPotionId} /> for better results.
+            您使用了 {weakPotionsUsed} {weakPotionsUsed === 1 ? '瓶弱药水' : '瓶弱药水'}。请使用{' '}
+            <ItemLink id={strongPotionId} /> 以获得更好的效果。
           </p>
         </>
       )}

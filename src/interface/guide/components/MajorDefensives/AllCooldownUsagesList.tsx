@@ -29,7 +29,7 @@ const MissingCastBoxEntry = {
   value: QualitativePerformance.Fail,
   tooltip: (
     <PerformanceUsageRow>
-      <PerformanceMark perf={QualitativePerformance.Fail} /> Potential cast went unused
+      <PerformanceMark perf={QualitativePerformance.Fail} /> 潜在的施法未使用
     </PerformanceUsageRow>
   ),
 };
@@ -38,8 +38,8 @@ const PossibleMissingCastBoxEntry = {
   value: QualitativePerformance.Ok,
   tooltip: (
     <PerformanceUsageRow>
-      <PerformanceMark perf={QualitativePerformance.Ok} /> Potential cast went unused, but may have
-      been intentionally saved to handle a mechanic.
+      <PerformanceMark perf={QualitativePerformance.Ok} />{' '}
+      潜在的施法未使用，但可能故意保留以应对某些机制。
     </PerformanceUsageRow>
   ),
 };
@@ -113,7 +113,7 @@ const CooldownDetails = ({ analyzer, mit }: CooldownDetailsProps) => {
   if (!mit) {
     return (
       <CooldownDetailsContainer>
-        <NoData>Click on a box in the cast breakdown to view details.</NoData>
+        <NoData>点击施法分解中的一个框以查看详细信息。</NoData>
       </CooldownDetailsContainer>
     );
   }
@@ -135,13 +135,13 @@ const BreakdownByTalent = ({ analyzer, mit }: Required<CooldownDetailsProps>) =>
     <table>
       <tbody>
         <tr>
-          <td>Total Mitigated</td>
+          <td>总减免伤害</td>
           <NumericColumn>{formatNumber(mit.amount)}</NumericColumn>
           <td>
             <SmallPassFailBar
               pass={mit.amount}
               total={analyzer.firstSeenMaxHp}
-              passTooltip="Amount of damage mitigated, relative to your maximum health"
+              passTooltip="相对于最大生命值的减免伤害量"
             />
           </td>
         </tr>
@@ -160,7 +160,7 @@ const BreakdownByTalent = ({ analyzer, mit }: Required<CooldownDetailsProps>) =>
         )}
         <tr>
           <td colSpan={3}>
-            <strong>Mitigation by Talent</strong>
+            <strong>按天赋减免</strong>
           </td>
         </tr>
         {segments.map((seg, ix) => (
@@ -206,10 +206,10 @@ export const BreakdownByDamageSource = ({ mit }: Pick<Required<CooldownDetailsPr
   const damageTakenRows = Array.from(damageTakenBreakdown.entries())
     .flatMap(([id, bySource]): [number, MitigatedEvent[]][] => {
       if (id === 1 && splitMelees) {
-        // make each melee source its own row
+        // 将每个近战源独立作为一行
         return Array.from(bySource.values()).map((events) => [id, events]);
       } else {
-        // put all the events into a single list.
+        // 将所有事件放入一个列表
         return [[id, Array.from(bySource.values()).flat()]];
       }
     })
@@ -219,7 +219,7 @@ export const BreakdownByDamageSource = ({ mit }: Pick<Required<CooldownDetailsPr
 
       return totalB - totalA;
     })
-    // limit to top 5 damage sources
+    // 限制为前5个伤害来源
     .slice(0, 5);
 
   const maxDamageTaken = Math.max.apply(
@@ -232,7 +232,7 @@ export const BreakdownByDamageSource = ({ mit }: Pick<Required<CooldownDetailsPr
       <tbody>
         <tr>
           <td colSpan={3}>
-            <strong>Mitigation by Damage Source</strong>
+            <strong>按伤害来源减免</strong>
           </td>
         </tr>
         {damageTakenRows.map(([spellId, events], ix) => {
@@ -286,15 +286,15 @@ const CooldownUsage = ({
   const actualCasts = performance.length;
 
   if (actualCasts === 0 && possibleUses > 1) {
-    // if they didn't cast it and could have multiple times, we call all possible uses bad
+    // 如果没有施放，并且可能多次施放，则将所有可能的使用情况标记为糟糕
     //
-    // the possibleUses > 1 check excludes this from happening on very short fights (such as early wipes)
+    // possibleUses > 1 的检查排除了在非常短的战斗（如早期团灭）中发生这种情况
     for (let i = 0; i < possibleUses; i += 1) {
       performance.push(MissingCastBoxEntry);
     }
   } else {
-    // if they cast it at least once, have some forgiveness. up to half (rounded up)
-    // of possible casts get a yellow color. any beyond that are red.
+    // 如果至少施放了一次，有一定的容忍度。最多一半（四舍五入）
+    // 可能的施法次数将为黄色，超过的将为红色。
     for (let i = possibleUses; i > actualCasts; i -= 1) {
       if (i > possibleUses / 2) {
         performance.push(PossibleMissingCastBoxEntry);
@@ -323,22 +323,21 @@ const CooldownUsage = ({
         <Explanation>{analyzer.description()}</Explanation>
         <CooldownUsageDetailsContainer>
           <div>
-            <strong>Cast Breakdown</strong>{' '}
+            <strong>施法分解</strong>{' '}
             <small>
-              - These boxes represent each cast, colored by how much damage was mitigated. Missed
-              casts are also shown in{' '}
-              <TooltipElement content="Used for casts that may have been skipped in order to cover major damage events.">
+              - 这些框代表每次施法，颜色代表减免的伤害量。未使用的施法也会显示为{' '}
+              <TooltipElement content="用于可能跳过以应对重大伤害事件的施法。">
                 <Highlight color={OkColor} textColor="black">
-                  yellow
+                  黄色
                 </Highlight>
               </TooltipElement>{' '}
-              or{' '}
-              <TooltipElement content="Used for casts that could have been used without impacting your other usage.">
+              或{' '}
+              <TooltipElement content="用于未使用但不会影响其他使用情况的施法。">
                 <Highlight color={BadColor} textColor="white">
-                  red
+                  红色
                 </Highlight>
               </TooltipElement>
-              .
+              。
             </small>
           </div>
           <PerformanceBoxRow

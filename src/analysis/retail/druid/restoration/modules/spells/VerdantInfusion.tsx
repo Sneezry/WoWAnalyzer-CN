@@ -24,11 +24,11 @@ const HOT_ID_CONSUME_ORDER = [
 ];
 
 /**
- * **Verdant Infusion**
- * Spec Talent Tier 8
+ * **生机灌注**
+ * 专精天赋第8层
  *
- * Swiftmend no longer consumes a heal over time effect,
- * and extends the duration of your heal over time effects on the target by 8 sec.
+ * 迅捷治愈不再消耗一个持续治疗效果，
+ * 并将目标身上的持续治疗效果持续时间延长8秒。
  */
 class VerdantInfusion extends Analyzer {
   static dependencies = {
@@ -72,11 +72,11 @@ class VerdantInfusion extends Analyzer {
     hotIdsOn.forEach((hotId) => {
       this.perHotExtensions.set(hotId, (this.perHotExtensions.get(hotId) ?? 0) + 1);
       if (hotId === hotIdThatWouldHaveBeenRemoved) {
-        // register extension, but attribute the whole HoT to VI
+        // 注册扩展，但将整个HoT归因于生机灌注
         this.hotTracker.addExtension(null, HOT_EXTENSION, target.id, hotId);
         this.hotTracker.addAttribution(this.attribution, target.id, hotId);
       } else {
-        // register and attribute the extension
+        // 注册并归因于扩展
         this.hotTracker.addExtension(this.attribution, HOT_EXTENSION, target.id, hotId);
       }
     });
@@ -93,30 +93,29 @@ class VerdantInfusion extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(8)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(8)} // 基于天赋行的编号
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
             <p>
-              This is the sum of the healing attributable to the HoT extensions caused by casting
-              Swiftmend with the Verdant Infusion talent. This number also accounts for the benefit
-              of not consuming a HoT.
+              这是由于在拥有生机灌注天赋的情况下施放迅捷治愈所引起的HoT持续时间延长所带来的治疗总和。
+              此数字还考虑到了不消耗HoT的收益。
             </p>
             <p>
-              Over <strong>{this.casts} Swiftmends</strong>, you averaged{' '}
-              <strong>{this.extensionsPerCast.toFixed(1)} HoTs extended</strong> and caused{' '}
-              <strong>{formatNumber(this.healingPerCast)} additional healing</strong> per cast.
+              在<strong>{this.casts} 次迅捷治愈</strong>中，你平均
+              <strong>{this.extensionsPerCast.toFixed(1)} 个HoT被延长</strong>， 并导致每次施放
+              <strong>{formatNumber(this.healingPerCast)} 额外治疗量</strong>。
             </p>
             <p>
-              A per-HoT breakdown of extensions:
+              按每个HoT的延长情况：
               <ul>
                 {[...this.perHotExtensions.entries()].map((keyAndVal) => {
                   const spellId = keyAndVal[0];
                   const procs = keyAndVal[1];
                   return (
                     <li key={spellId}>
-                      <SpellLink spell={spellId} />: <strong>{procs}</strong> extensions
+                      <SpellLink spell={spellId} />: <strong>{procs}</strong> 次延长
                     </li>
                   );
                 })}

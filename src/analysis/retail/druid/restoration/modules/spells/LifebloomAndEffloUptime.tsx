@@ -22,7 +22,7 @@ class LifebloomAndEffloUptime extends Analyzer {
       <UptimeMultiBarStatistic
         title={
           <>
-            <UptimeIcon /> Uptimes
+            <UptimeIcon /> 激活时间
           </>
         }
         position={STATISTIC_ORDER.CORE(9.5)} // chosen for fixed ordering of general stats

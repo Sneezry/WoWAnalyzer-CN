@@ -42,19 +42,18 @@ class Dreamstate extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(6)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(6)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            Total Cooldown Reduction from all Tranquility casts:{' '}
-            <strong>{(this.totalCDR / 1000).toFixed(0)} seconds</strong>
+            所有宁静施放带来的总冷却缩减： <strong>{(this.totalCDR / 1000).toFixed(0)} 秒</strong>
           </>
         }
       >
         <BoringSpellValueText spell={TALENTS_DRUID.DREAMSTATE_TALENT}>
           <>
-            {formatNumber(this.owner.getPerMinute(this.totalCDR) / 1000)} s{' '}
-            <small>CDR per minute</small>
+            {formatNumber(this.owner.getPerMinute(this.totalCDR) / 1000)} 秒{' '}
+            <small>每分钟的冷却缩减</small>
           </>
         </BoringSpellValueText>
       </Statistic>

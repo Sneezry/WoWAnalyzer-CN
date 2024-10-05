@@ -12,10 +12,10 @@ interface SuggestionSectionProps<T extends typeof Analyzer> {
 }
 
 /**
- * Section that can be included in Guides in order to make transitioning away from
- * Suggestions easier.
+ * 可以包含在指南中的部分，以便更容易地过渡到
+ * 建议部分。
  *
- * # Example
+ * # 示例
  *
  * ```
  * <SuggestionSection analyzers={[FoodChecker, WeaponEnhancementChecker]} />
@@ -39,15 +39,14 @@ const SuggestionSection = <T extends typeof Analyzer>({ analyzers }: SuggestionS
     <Section
       title={t({
         id: 'interface.report.results.overview.suggestions.suggestions',
-        message: 'Suggestions',
+        message: '建议',
       })}
     >
       <div className="flex wrapable">
         <div className="flex-main">
           <small>
             <Trans id="interface.report.results.overview.suggestions.explanation">
-              Based on what you did in this fight, here are some things we think you might be able
-              to improve.
+              根据您在这场战斗中的表现，以下是一些我们认为您可能可以改进的地方。
             </Trans>
           </small>
         </div>
@@ -61,7 +60,7 @@ const SuggestionSection = <T extends typeof Analyzer>({ analyzers }: SuggestionS
             />
             <label htmlFor="minor-issues-toggle">
               <Trans id="interface.report.results.overview.suggestions.minorImportance">
-                Minor importance
+                次要重要性
               </Trans>
             </label>
           </div>
@@ -73,9 +72,7 @@ const SuggestionSection = <T extends typeof Analyzer>({ analyzers }: SuggestionS
       <div className="flex">
         <small>
           <Trans id="interface.report.results.overview.suggestions.improve">
-            Some of these suggestions may be nitpicky or fight dependent, but often it's still
-            something you could look to improve. Try to focus on improving one thing at a time -
-            don't try to improve everything at once.
+            这些建议可能显得琐碎或依赖于战斗，但通常仍然是您可以改进的地方。尽量专注于一次改进一件事——不要试图一次改进所有内容。
           </Trans>
         </small>
       </div>

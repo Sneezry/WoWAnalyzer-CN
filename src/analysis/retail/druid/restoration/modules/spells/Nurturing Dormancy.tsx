@@ -17,11 +17,11 @@ const REJUV_MAX = 30_000;
 const MAX_PROCS = 2;
 
 /**
- * **Nurturing Dormancy**
- * Spec Talent
+ * **滋养休眠**
+ * 专精天赋
  *
- * When your Rejuvenation heals a full health target, its duration is increased by 2 sec, up to a
- * maximum total increase of 4 sec per cast. Cannot extend duration past 30 sec.
+ * 当你的回春术为满血目标治疗时，其持续时间延长2秒，每次施法最多延长4秒。
+ * 持续时间不能超过30秒。
  */
 class NurturingDormancy extends Analyzer {
   static dependencies = {
@@ -31,8 +31,7 @@ class NurturingDormancy extends Analyzer {
   protected hotTracker!: HotTrackerRestoDruid;
 
   attribution: Attribution = HotTracker.getNewAttribution('Nurturing Dormancy');
-  /** Mapping from target and spell ID to the number of times Nurturing Dormancy has procced for
-   *  that HoT instance */
+  /** 追踪每个目标和法术ID的滋养休眠触发次数 */
   procsFromCastMap: { [targetId: number]: { [spellId: number]: { procs: number } } } = {};
 
   constructor(options: Options) {
@@ -58,8 +57,8 @@ class NurturingDormancy extends Analyzer {
     if (event.amount === 0 && event.overheal) {
       const procsEntry = this._getEntry(event);
       if (procsEntry.procs < MAX_PROCS) {
-        // 'cannot extend past 30s' only applies to this talent - other effects can push it past
-        let timeRemainingOnRejuv = 0; // if there's a problem getting rejuv duration, assume no cap
+        // '不能延长超过30秒' 只适用于此天赋 - 其他效果可以推到30秒以上
+        let timeRemainingOnRejuv = 0; // 如果无法获取回春术的持续时间，假设没有上限
         if (
           this.hotTracker.hots[event.targetID] &&
           this.hotTracker.hots[event.targetID][event.ability.guid]
@@ -67,8 +66,7 @@ class NurturingDormancy extends Analyzer {
           timeRemainingOnRejuv =
             this.hotTracker.hots[event.targetID][event.ability.guid].end - event.timestamp;
         }
-        // extend the full amount if it won't take over the cap, nothing if already over the cap,
-        // and partial amount if taking exactly to the cap
+        // 如果不超过上限则延长全部时间，已经超过上限则不延长，如果刚好达到上限则延长部分时间
         const extensionAmount = Math.max(
           Math.min(EXTENSION_AMOUNT, REJUV_MAX - timeRemainingOnRejuv),
           0,
@@ -81,7 +79,7 @@ class NurturingDormancy extends Analyzer {
             event.ability.guid,
           );
         }
-        // even if there's no extension due to cap, a usage is still consumed
+        // 即使由于上限没有延长，依然消耗一次触发机会
         procsEntry.procs += 1;
       }
     }
@@ -91,7 +89,7 @@ class NurturingDormancy extends Analyzer {
     this._getEntry(event).procs = 0;
   }
 
-  /** Initializes and returns the proc tracker object for this event */
+  /** 初始化并返回此事件的触发追踪对象 */
   _getEntry(event: ApplyBuffEvent | RefreshBuffEvent | HealEvent): { procs: number } {
     if (!this.procsFromCastMap[event.targetID]) {
       this.procsFromCastMap[event.targetID] = {};
@@ -105,14 +103,14 @@ class NurturingDormancy extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(9)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(9)} // 依据天赋行的位置
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the healing due to <SpellLink spell={TALENTS_DRUID.NURTURING_DORMANCY_TALENT} />{' '}
-            rejuv extensions. Over the course of the encounter, rejuvs were extended a total of{' '}
-            <strong>{(this.attribution.totalExtension / 1000).toFixed(1)}s</strong>.
+            这是由于 <SpellLink spell={TALENTS_DRUID.NURTURING_DORMANCY_TALENT} />{' '}
+            回春术延长造成的治疗量。在整个战斗过程中，回春术总共延长了{' '}
+            <strong>{(this.attribution.totalExtension / 1000).toFixed(1)}秒</strong>。
           </>
         }
       >

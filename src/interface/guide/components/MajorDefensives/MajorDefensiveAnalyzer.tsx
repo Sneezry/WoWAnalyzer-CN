@@ -25,9 +25,7 @@ import { encodeTargetString } from 'parser/shared/modules/Enemies';
 import { CooldownDetailsProps } from './AllCooldownUsagesList';
 
 /**
- * Trigger settings for a `MajorDefensive`. You probably want to use `buff` or `debuff`
- * instead of using this yourself, but if you have a weirdo defensive that doesn't use
- * buffs/debuffs then you may need this.
+ * 防御触发器的设置。你可能希望使用 `buff` 或 `debuff` 而不是自己使用这个类，但如果你有一个不使用buff/debuff的特殊防御技能，你可能需要这个。
  */
 type DefensiveTrigger<Apply extends EventType, Remove extends EventType> = {
   applyTrigger: EventFilter<Apply>;
@@ -37,10 +35,9 @@ type DefensiveTrigger<Apply extends EventType, Remove extends EventType> = {
 };
 
 /**
- * Construct the trigger settings for a `MajorDefensiveBuff`.
+ * 为 `MajorDefensiveBuff` 构造触发器设置。
  *
- * The spell passed should be the one that is actually applied to the player,
- * not the one that is cast. Yes, those two spells are sometimes different.
+ * 传递的法术应该是实际施加在玩家身上的那个，而不是施放的那个。是的，这两个法术有时是不同的。
  */
 export const buff = (
   buffSpell: Spell,
@@ -53,10 +50,9 @@ export const buff = (
 });
 
 /**
- * Construct the trigger settings for a `MajorDefensiveDebuff`.
+ * 为 `MajorDefensiveDebuff` 构造触发器设置。
  *
- * The spell passed should be the one that is actually applied to the target,
- * not the one that is cast. Yes, those two spells are sometimes different.
+ * 传递的法术应该是施加在目标身上的，而不是施放的那个。是的，这两个法术有时是不同的。
  */
 export const debuff = (
   buffSpell: Spell,
@@ -69,8 +65,7 @@ export const debuff = (
 });
 
 /**
- * A mitigated event. Typically the `event` field will be a `DamageEvent`, but
- * sometimes it makes sense to use other things (like `AbsorbedEvent` or `HealEvent`).
+ * 减免事件。通常 `event` 字段是一个 `DamageEvent`，但有时它可以是其他类型的事件（如 `AbsorbedEvent` 或 `HealEvent`）。
  */
 export type MitigatedEvent = {
   event: AnyEvent;
@@ -78,12 +73,9 @@ export type MitigatedEvent = {
 };
 
 /**
- * A single mitigation window. May be buff/debuff (or other?). Holds the total
- * amount of damage mitigated, along with the events that were mitigated.
+ * 单个减免窗口。可能是 buff/debuff（或其他？）。包含总共减免的伤害量以及减免的事件。
  *
- * For convenience, the types default to `any` so you can use it as just `Mitigation`
- * since it pops up a lot and you *almost never* need to know the start/end types
- * (typically, you only need the timestamps).
+ * 为了方便起见，类型默认设置为 `any`，这样你可以仅使用 `Mitigation`，因为它经常出现并且你几乎不需要了解开始/结束类型（通常只需要时间戳）。
  */
 export type Mitigation<Apply extends EventType = any, Remove extends EventType = any> = {
   start: AnyEvent<Apply>;
@@ -91,7 +83,7 @@ export type Mitigation<Apply extends EventType = any, Remove extends EventType =
   mitigated: MitigatedEvent[];
   amount: number;
   /**
-   * For effects that have a maximum mitigation amount (like absorbs), this represents the total possible amount mitigated. If there is no max (like most DR effects), this should be omitted.
+   * 对于具有最大减免量的效果（如吸收盾），此字段表示可以减免的最大总量。如果没有最大值（如大多数减伤效果），则应省略此字段。
    */
   maxAmount?: number;
 };
@@ -102,8 +94,8 @@ type InProgressMitigation<Apply extends EventType, Remove extends EventType> = P
 >;
 
 /**
- * Calculate the absolute amount of damage reduced by a percentage DR effect.
- * For example: for a 50% DR cooldown, you'd call `absoluteMitigation(event, 0.5).
+ * 计算百分比减伤效果的绝对减免伤害量。
+ * 例如：对于一个50%的减伤冷却技能，你可以调用 `absoluteMitigation(event, 0.5)`。
  */
 export function absoluteMitigation(event: DamageEvent, mitPct: number): number {
   const actualAmount = event.amount + (event.absorbed ?? 0) + (event.overkill ?? 0);
@@ -112,9 +104,9 @@ export function absoluteMitigation(event: DamageEvent, mitPct: number): number {
 }
 
 /**
- * Set the default sizes for `MitigationRow`.
+ * 设置 `MitigationRow` 的默认大小。
  *
- * You probably aren't looking for this unless you're rendering a `MitigationRow` yourself.
+ * 除非你自己渲染 `MitigationRow`，否则你可能不需要这个。
  */
 export const MitigationRowContainer = styled.div`
   display: grid;
@@ -129,9 +121,9 @@ export const MitigationRowContainer = styled.div`
 `;
 
 /**
- * Row showing the duration and mitigation amount, along with the `MitigationSegments`.
+ * 显示持续时间和减免量的行，附带 `MitigationSegments`。
  *
- * The `MitigationRowContainer` component is used to size things appropriately in most instances.
+ * `MitigationRowContainer` 组件用于在大多数情况下适当调整大小。
  */
 export const MitigationRow = ({
   mitigation,
@@ -154,39 +146,29 @@ export const MitigationRow = ({
 };
 
 /**
- * An analyzer for a major defensive cooldown tracking the total amount of damage mitigated.
+ * 一个主要防御冷却技能的分析器，用于跟踪减免的总伤害量。
  *
- * While this works for short cooldowns, it is intended for use with longer cooldowns,
- * such as your typical 2+ minute damage reduction CDs.
+ * 虽然这适用于短冷却时间，但它主要用于长冷却时间的技能，如2分钟以上的减伤技能。
  *
- * You probably want to extend `MajorDefensiveBuff` or `MajorDefensiveDebuff` to set
- * the type parameters automatically instead of using this directly.
+ * 你可能希望继承 `MajorDefensiveBuff` 或 `MajorDefensiveDebuff` 来自动设置类型参数，而不是直接使用这个类。
  *
- * ## Usage
+ * ## 使用说明
  *
- * A basic "Reduce damage taken by X%" cooldown can be implemented by doing the following:
+ * 要实现一个基本的“减少X%所受伤害”的冷却技能，可以按以下步骤进行：
  *
- * 1. Extend `MajorDefensiveBuff` or `MajorDefensiveDebuff` (or this class, if you need something custom).
- * 2. Call the constructor with (1) the spell to display (used for icons and tooltips),
- *    (2) the `DefensiveTrigger` (usually made by `buff` or `debuff`),
- *    and the `options` passed into your analyzer.
- * 3. Add an event listener for damage, and in the handler call `this.recordMitigation`
- *    if `this.defensiveActive(event)` is true. You can use the `absoluteMitigation` helper
- *    function to calculate the amount of damage mitigated.
+ * 1. 继承 `MajorDefensiveBuff` 或 `MajorDefensiveDebuff`（如果你需要自定义，则继承此类）。
+ * 2. 使用法术和触发器设置调用构造函数，并传入选项。
+ * 3. 添加伤害事件监听器，在处理程序中调用 `this.recordMitigation`，如果 `this.defensiveActive(event)` 为 `true`。你可以使用 `absoluteMitigation` 帮助函数来计算减免的伤害量。
  *
- * If you are working with a talented cooldown, remember that you need to check `hasTalent` yourself!
+ * 如果你正在处理一个天赋冷却技能，记得自己检查 `hasTalent`！
  *
- * ## Example
+ * ## 示例
  *
- * Brewmaster's Zen Meditation is one of the simplest defensive buff implementations and
- * would be a good place to start if you're dealing with something that isn't super
- * complicated (easy to detect start/end, reduces all damage by a fixed %).
+ * 酒仙僧的“禅意冥想”是最简单的防御Buff之一，适合处理不太复杂的技能（例如，开始/结束容易检测，减少所有伤害的固定百分比）。
  *
- * If you're searching for something a little more involved, Brewmaster's Fortifying Brew
- * module has multiple DR sources contributing (Fort Brew itself, plus the increased contribution
- * from Purifying Brew).
+ * 如果你需要更复杂的示例，酒仙僧的“壮胆酒”模块有多个减伤来源（壮胆酒本身，加上净化酿造的增加贡献）。
  *
- * If you are working on a debuff instead of a buff, look at Vengeance's Fiery Brand implementation.
+ * 如果你正在处理Debuff而不是Buff，请查看复仇恶魔猎手的“炽热烙印”实现。
  */
 export default class MajorDefensive<
   Apply extends EventType,
@@ -218,7 +200,7 @@ export default class MajorDefensive<
   }
 
   /**
-   * Get the map key for the buff/debuff target.
+   * 获取buff/debuff目标的映射键。
    */
   protected getBuffTarget(event: AnyEvent<Apply> | AnyEvent<Remove>): string | undefined {
     if (HasTarget(event)) {
@@ -229,8 +211,7 @@ export default class MajorDefensive<
   }
 
   /**
-   * Get the map key for a mitigaton event. If this is a buff, we get the target. If it is a debuff, we get the source.
-   * Basically the reverse of `getBuffTarget`.
+   * 获取减免事件的映射键。如果这是一个buff，我们获取目标。如果是debuff，我们获取来源。
    */
   protected getKeyForMitigation(event: AnyEvent): string | undefined {
     if (this.trackOn === ResourceActor.Source && HasTarget(event)) {
@@ -248,7 +229,7 @@ export default class MajorDefensive<
   }
 
   /**
-   * Set the maximum amount that could be mitigated by a cast.
+   * 设置施法可以减免的最大量。
    */
   protected setMaxMitigation(event: AnyEvent, amount: number): void {
     const key = this.getKeyForMitigation(event);
@@ -271,7 +252,7 @@ export default class MajorDefensive<
   private onApply(event: AnyEvent<Apply>) {
     const target = this.getBuffTarget(event);
     if (!target) {
-      console.warn('Unable to determine target for Major Defensive analyzer', this.spell, event);
+      console.warn('无法确定主要防御分析器的目标', this.spell, event);
       return;
     }
     this.currentMitigations.set(target, {
@@ -284,7 +265,7 @@ export default class MajorDefensive<
     const target = this.getBuffTarget(event);
     const current = target && this.currentMitigations.get(target);
     if (!current) {
-      // no apply, nothing we can do. probably looking at a slice of a log
+      // 没有应用，无法操作。可能正在查看日志的一部分。
       return;
     }
 
@@ -320,13 +301,11 @@ export default class MajorDefensive<
   }
 
   /**
-   * Break down a `Mitigation` into one or more `MitigationSegment`s.
+   * 将 `Mitigation` 分解为一个或多个 `MitigationSegment`。
    *
-   * The default implementation gives you a single segment capturing
-   * the entire amount mitigated.
+   * 默认实现会给你一个捕获整个减免量的段。
    *
-   * If you want to do something more complicated (for example: showing
-   * the extra mitigation gained from a talent), override this method.
+   * 如果你想做一些更复杂的事情（例如：显示从天赋获得的额外减免量），可以重写此方法。
    */
   mitigationSegments(mit: Mitigation<Apply, Remove>): MitigationSegment[] {
     return [
@@ -339,10 +318,9 @@ export default class MajorDefensive<
   }
 
   /**
-   * Get the first seen max HP of the player.
+   * 获取玩家的首次最大生命值。
    *
-   * This is used to normalize performance data in
-   * a relatively robust way across tiers.
+   * 这是用于在不同等级之间相对稳健地标准化性能数据的方法。
    */
   get firstSeenMaxHp(): number {
     return (
@@ -362,36 +340,36 @@ export default class MajorDefensive<
     if (this.firstSeenMaxHp <= mit.amount) {
       return {
         perf: QualitativePerformance.Perfect,
-        explanation: 'Usage mitigated over 100% of your HP',
+        explanation: '使用减免了超过100%的生命值',
       };
     }
 
     if (this.firstSeenMaxHp / 4 > mit.amount) {
       return {
         perf: QualitativePerformance.Ok,
-        explanation: 'Usage mitigated less than 25% of your HP',
+        explanation: '使用减免了少于25%的生命值',
       };
     }
 
     return { perf: QualitativePerformance.Good };
   }
 
-  // TODO: make abstract?
+  // TODO: 需要抽象化？
   /**
-   * Description shown in `AllCooldownUsagesList`.
+   * 在 `AllCooldownUsagesList` 中显示的描述。
    */
   description(): ReactNode {
-    return <>TODO</>;
+    return <>待补充</>;
   }
 
   maxMitigationDescription(): ReactNode {
-    return <>Max Mitigation</>;
+    return <>最大减免量</>;
   }
 
   /**
-   * Generate `BoxRowEntry`s for each use of the mitigation ability.
+   * 为减免技能的每次使用生成 `BoxRowEntry`。
    *
-   * If you want to filter or customize the entries, override this method.
+   * 如果你想过滤或自定义条目，可以重写此方法。
    */
   mitigationPerformance(maxValue: number): BoxRowEntry[] {
     return this.mitigationData.map((mit) => {
@@ -401,12 +379,12 @@ export default class MajorDefensive<
         tooltip: (
           <>
             <PerformanceUsageRow>
-              <PerformanceMark perf={perf} /> {explanation ?? 'Good Usage'}
+              <PerformanceMark perf={perf} /> {explanation ?? '良好使用'}
             </PerformanceUsageRow>
             <div>
               <MitigationRowContainer>
-                <strong>Time</strong>
-                <strong>Mit.</strong>
+                <strong>时间</strong>
+                <strong>减免量</strong>
               </MitigationRowContainer>
               <MitigationRow
                 mitigation={mit}
@@ -423,19 +401,19 @@ export default class MajorDefensive<
   }
 }
 
-// technically subclassing, but in practice this is the only way to do type aliases that set type parameters for classes
+// 实际上是子类化，但在实践中这是设置类类型参数的唯一方法
 
 /**
- * `MajorDefensive` that has types pre-set for handling buffs.
+ * 预设类型为处理buff的 `MajorDefensive`。
  *
- * @see MajorDefensive for full documentation
+ * @see MajorDefensive 完整文档
  */
 export class MajorDefensiveBuff extends MajorDefensive<EventType.ApplyBuff, EventType.RemoveBuff> {}
 
 /**
- * `MajorDefensive` that has types pre-set for handling debuffs.
+ * 预设类型为处理debuff的 `MajorDefensive`。
  *
- * @see MajorDefensive for full documentation
+ * @see MajorDefensive 完整文档
  */
 export class MajorDefensiveDebuff extends MajorDefensive<
   EventType.ApplyDebuff,

@@ -17,8 +17,8 @@ const LB_COLOR = '#00bb44';
 const UNDERGROWTH_COLOR = '#dd5500';
 
 /**
- * Components related to Lifebloom and Lifebloom's uptime.
- * Includes uptime tracking for Undergrowth talent (allows 2 LB up at once)
+ * 生命绽放组件，用于跟踪该技能的使用情况和持续时间。
+ * 包含天赋“茂密生长”的持续时间统计（允许同时存在两个生命绽放）。
  */
 class Lifebloom extends Analyzer {
   static dependencies = {
@@ -27,13 +27,13 @@ class Lifebloom extends Analyzer {
 
   protected combatants!: Combatants;
 
-  /** true iff player has the Undergrowth talent */
+  /** 玩家是否拥有“茂密生长”天赋 */
   hasUndergrowth = false;
-  /** the number of lifeblooms the player currently has active */
+  /** 玩家当前激活的生命绽放数量 */
   activeLifeblooms: number = 0;
-  /** list of time periods when at least one lifebloom was active */
+  /** 至少有一个生命绽放激活时的时间段列表 */
   lifebloomUptimes: OpenTimePeriod[] = [];
-  /** list of time periods when at least two lifeblooms were active */
+  /** 激活了两个生命绽放时的时间段列表 */
   undergrowthUptimes: OpenTimePeriod[] = [];
 
   possibleNaturalBlooms: number = 0;
@@ -63,10 +63,10 @@ class Lifebloom extends Analyzer {
 
   onApplyLifebloom(event: ApplyBuffEvent) {
     if (this.activeLifeblooms === 0) {
-      // LBS 0 -> 1
+      // 激活第一个生命绽放
       this.lifebloomUptimes.push({ start: event.timestamp });
     } else if (this.activeLifeblooms === 1) {
-      // LBS 1 -> 2
+      // 激活第二个生命绽放
       this.undergrowthUptimes.push({ start: event.timestamp });
     }
     this.activeLifeblooms += 1;
@@ -74,12 +74,12 @@ class Lifebloom extends Analyzer {
 
   onRemoveLifebloom(event: RemoveBuffEvent) {
     if (this.activeLifeblooms === 1) {
-      // LBS 1 -> 0
+      // 从1个生命绽放变为0个
       if (this.lifebloomUptimes.length > 0) {
         this.lifebloomUptimes[this.lifebloomUptimes.length - 1].end = event.timestamp;
       }
     } else if (this.activeLifeblooms === 2) {
-      // LBS 2 -> 1
+      // 从2个生命绽放变为1个
       if (this.undergrowthUptimes.length > 0) {
         this.undergrowthUptimes[this.undergrowthUptimes.length - 1].end = event.timestamp;
       }
@@ -94,12 +94,12 @@ class Lifebloom extends Analyzer {
     }
   }
 
-  /** The time at least one lifebloom was active */
+  /** 统计至少有一个生命绽放激活的时间 */
   get oneLifebloomUptime() {
     return this._getTotalUptime(this.lifebloomUptimes);
   }
 
-  /** The time at two lifeblooms were active */
+  /** 统计有两个生命绽放激活的时间 */
   get twoLifebloomUptime() {
     return this._getTotalUptime(this.undergrowthUptimes);
   }
@@ -111,7 +111,7 @@ class Lifebloom extends Analyzer {
     );
   }
 
-  /** The time a lifebloom was active on the selected player */
+  /** 生命绽放激活在玩家自身的时间 */
   get selfLifebloomUptime(): number {
     return (
       this.selectedCombatant.getBuffUptime(
@@ -125,7 +125,7 @@ class Lifebloom extends Analyzer {
     );
   }
 
-  /** The time a lifebloom was active on someone other than the selected player */
+  /** 生命绽放激活在其他玩家的时间 */
   get othersLifebloomUptime(): number {
     const summedTotalLifebloomUptime = Object.values(this.combatants.players).reduce(
       (uptime, player) =>
@@ -137,7 +137,7 @@ class Lifebloom extends Analyzer {
     return summedTotalLifebloomUptime - this.selfLifebloomUptime;
   }
 
-  /** Guide subsection describing the proper usage of Lifebloom */
+  /** 显示关于生命绽放的指南部分 */
   get guideSubsection(): JSX.Element {
     const hasPhoto = this.selectedCombatant.hasTalent(TALENTS_DRUID.PHOTOSYNTHESIS_TALENT);
     const hasUndergrowth = this.selectedCombatant.hasTalent(TALENTS_DRUID.UNDERGROWTH_TALENT);
@@ -151,63 +151,57 @@ class Lifebloom extends Analyzer {
           <b>
             <SpellLink spell={SPELLS.LIFEBLOOM_HOT_HEAL} />
           </b>{' '}
-          can only be active on {hasUndergrowth ? 'two targets' : 'one target'} at a time{' '}
+          最多可同时激活 {hasUndergrowth ? '两个目标' : '一个目标'}{' '}
           {hasUndergrowth && (
             <>
-              (due to <SpellLink spell={TALENTS_DRUID.UNDERGROWTH_TALENT} />)
+              （由于 <SpellLink spell={TALENTS_DRUID.UNDERGROWTH_TALENT} /> 天赋）
             </>
-          )}{' '}
-          and provides similar throughput to Rejuvenation. However, it causes{' '}
-          <SpellLink spell={SPELLS.CLEARCASTING_BUFF} /> procs and so is a big benefit to your mana
-          efficiency. You should aim for 100% Lifebloom uptime.
+          )}
+          。生命绽放与回春术类似，具有良好的持续治疗量，还会产生{' '}
+          <SpellLink spell={SPELLS.CLEARCASTING_BUFF} />{' '}
+          触发效果，对法力效率有很大帮助。你应该努力保持生命绽放的100%激活时间。
         </p>
         {hasVerdancy && (
           <p>
-            Because you took{' '}
+            因为你选择了{' '}
             <strong>
               <SpellLink spell={TALENTS_DRUID.VERDANCY_TALENT} />
             </strong>
-            , you should take extra care to allow your Lifeblooms to bloom. Refreshing lifebloom
-            early or swapping targets before the existing Lifebloom has completed both will cause
-            the bloom to be skipped - avoid doing this.
+            ，你应该尽量让生命绽放在其自然结束时绽放。过早刷新或在持续时间结束前转移目标可能导致绽放被跳过，请避免此类操作。
             <br />
             <strong>
-              Lifebloom casts that bloomed:{' '}
+              自然绽放触发率：{' '}
               {formatPercentage(this.actualNaturalBlooms / this.possibleNaturalBlooms, 1)}%
             </strong>
           </p>
         )}
         {hasPhoto && (
           <p>
-            Because you took{' '}
+            因为你选择了{' '}
             <strong>
               <SpellLink spell={TALENTS_DRUID.PHOTOSYNTHESIS_TALENT} />
             </strong>
-            , high uptime is particularly important. Typically the Lifebloom-on-self effect is most
-            powerful{' '}
+            ，高激活时间尤为重要。通常情况下，生命绽放施加在自己身上效果最佳。
             {hasVerdancy && (
               <>
-                but because you took <SpellLink spell={TALENTS_DRUID.VERDANCY_TALENT} />, the extra
-                blooms from the 'on-others' effect will also be very powerful
+                但是因为你选择了 <SpellLink spell={TALENTS_DRUID.VERDANCY_TALENT} />
+                ，施加在其他目标上的绽放效果也非常强大。
               </>
             )}
-            .
             {hasUndergrowth && (
               <>
-                {' '}
-                Remember that <SpellLink spell={TALENTS_DRUID.UNDERGROWTH_TALENT} /> allows two
-                lifeblooms, and both will benefit!
+                记住，
+                <SpellLink spell={TALENTS_DRUID.UNDERGROWTH_TALENT} />{' '}
+                允许你同时拥有两个生命绽放，它们都能从这些效果中受益！
               </>
             )}
             <br />
-            Total Uptime on <strong>Self: {formatPercentage(selfUptimePercent, 1)}%</strong> / on{' '}
-            <strong>Others: {formatPercentage(othersUptimePercent, 1)}%</strong>
+            自己身上的总激活时间：<strong>{formatPercentage(selfUptimePercent, 1)}%</strong> /
+            其他目标的激活时间：<strong>{formatPercentage(othersUptimePercent, 1)}%</strong>
             {selfUptimePercent + othersUptimePercent > 1 && (
               <>
                 {' '}
-                <small>
-                  (value can sum to greater than 100% due to multiple lifeblooms being active)
-                </small>
+                <small>（由于可以同时拥有多个生命绽放，总值可能超过100%）</small>
               </>
             )}
           </p>
@@ -218,7 +212,7 @@ class Lifebloom extends Analyzer {
     const data = (
       <div>
         <RoundedPanel>
-          <strong>Lifebloom uptimes</strong>
+          <strong>生命绽放激活时间</strong>
           {this.subStatistic()}
         </RoundedPanel>
       </div>

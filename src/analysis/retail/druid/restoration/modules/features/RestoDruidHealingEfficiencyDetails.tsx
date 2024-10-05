@@ -6,20 +6,20 @@ import HealingEfficiencyDetails from 'parser/core/healingEfficiency/HealingEffic
 import Panel from 'parser/ui/Panel';
 import { TALENTS_DRUID } from 'common/TALENTS';
 
-/** Display module for healing efficiency data */
+/** 用于显示治疗效率数据的模块 */
 class RestoDruidHealingEfficiencyDetails extends HealingEfficiencyDetails {
   statistic() {
     return (
       <Panel
-        title={<Trans id="shared.healingEfficiency.title">Mana Efficiency</Trans>}
+        title={<Trans id="shared.healingEfficiency.title">法力效率</Trans>}
         explanation={
           <>
-            These stats include only your hardcasts - procs and casts due to{' '}
-            <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> are not included in this chart. <br />
-            Additional healing enabled by a HoT's mastery stack ARE counted here, but further
-            implications of the cast (like a{' '}
-            <SpellLink spell={TALENTS_DRUID.SOUL_OF_THE_FOREST_RESTORATION_TALENT} /> proc from
-            Swiftmend) are not counted.
+            这些统计数据仅包括你的硬读条施法 - 由于 <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />{' '}
+            触发的施法不包含在此图表中。
+            <br />
+            由HoT的精通叠层所增加的治疗量**会**计入此处，但施法的进一步影响（例如由{' '}
+            <SpellLink spell={TALENTS_DRUID.SOUL_OF_THE_FOREST_RESTORATION_TALENT} /> 触发的
+            愈合迅捷）不会被计算在内。
           </>
         }
         position={120}

@@ -6,6 +6,7 @@ import { Enchant } from 'common/ITEMS/Item';
 interface Props {
   recommendedEnchantments?: Record<number, Enchant[]>;
 }
+
 const EnchantmentSubSection = ({ recommendedEnchantments }: Props) => {
   const enchantChecker = useAnalyzer(EnchantChecker);
   const info = useInfo();
@@ -14,8 +15,8 @@ const EnchantmentSubSection = ({ recommendedEnchantments }: Props) => {
   }
 
   return (
-    <SubSection title="Enchants">
-      <p>Enchantments are easy ways to improve your throughput.</p>
+    <SubSection title="Enchantments">
+      <p>附魔是提升你输出的简单方法。</p>
       <EnchantmentBoxRow
         values={enchantChecker.getEnchantmentBoxRowEntries(recommendedEnchantments)}
       />

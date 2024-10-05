@@ -14,11 +14,11 @@ import { GUIDE_CORE_EXPLANATION_PERCENT } from 'analysis/retail/druid/restoratio
 import CastEfficiencyPanel from 'interface/guide/components/CastEfficiencyPanel';
 
 /**
- * **Cenarion Ward**
- * Spec Talent Tier 4
+ * **塞纳里奥结界**
+ * 专精天赋 第四层
  *
- * Protects a friendly target for 30 sec.
- * Any damage taken will consume the ward and heal the target for (X% of Spell power) over 8 sec.
+ * 保护一个友方目标，持续30秒。
+ * 受到伤害时将消耗结界并在8秒内治疗该目标（治疗量基于X%的法术强度）。
  */
 class CenarionWard extends Analyzer {
   static dependencies = {
@@ -38,8 +38,7 @@ class CenarionWard extends Analyzer {
         <b>
           <SpellLink spell={TALENTS_DRUID.CENARION_WARD_TALENT} />
         </b>{' '}
-        is a talented HoT on a short cooldown. It is powerful and efficient and should be cast on
-        cooldown. A tank is usually the best target.
+        是一个短冷却的天赋型HoT技能。它非常强大且高效，应该在冷却时立即施放。坦克通常是最佳目标。
       </p>
     );
 
@@ -55,19 +54,18 @@ class CenarionWard extends Analyzer {
 
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(4)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(4)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            This is the sum of the direct healing from Cenarion Ward and the healing enabled by
-            Cenarion Ward's extra mastery stack.
+            这是塞纳里奥结界的直接治疗量和通过塞纳里奥结界额外的精通层数带来的治疗量之和。
             <ul>
               <li>
-                Direct: <strong>{this.owner.formatItemHealingDone(directHealing)}</strong>
+                直接治疗量：<strong>{this.owner.formatItemHealingDone(directHealing)}</strong>
               </li>
               <li>
-                Mastery: <strong>{this.owner.formatItemHealingDone(masteryHealing)}</strong>
+                精通治疗量：<strong>{this.owner.formatItemHealingDone(masteryHealing)}</strong>
               </li>
             </ul>
           </>

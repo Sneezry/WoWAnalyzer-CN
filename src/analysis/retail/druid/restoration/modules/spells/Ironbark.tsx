@@ -12,15 +12,12 @@ import BoringValue from 'parser/ui/BoringValueText';
 import Statistic from 'parser/ui/Statistic';
 import STATISTIC_ORDER from 'parser/ui/STATISTIC_ORDER';
 
-const IRONBARK_BASE_DR = 0.2;
-const IRONBARK_HOT_BOOST = 0.2;
+const IRONBARK_BASE_DR = 0.2; // 基础伤害减免
+const IRONBARK_HOT_BOOST = 0.2; // 治疗效果提升
 
-// TODO the healing increase during Ironbark is now part of a separate talent, Stonebark.
-//      Need to properly handle that, and probably also handle Regenrative Heartwood.
 /**
- * Ironbark -
- * The target's skin becomes as tough as Ironwood, reducing damage taken by 20%
- * and increasing healing from your heal over time effects by 20% for 12 sec.
+ * 铁木树皮 -
+ * 目标的皮肤变得像铁木一样坚硬，减少受到的伤害20%，并在12秒内使你治疗效果提高20%。
  */
 class Ironbark extends Analyzer {
   static dependencies = {
@@ -45,7 +42,7 @@ class Ironbark extends Analyzer {
   }
 
   /**
-   * Check if heal was with one of our HoTs AND on target with our Ironbark - add to tally if so
+   * 检查治疗是否来自于我们的持续治疗效果，并且目标是否处于铁木树皮的增益状态，如果是则将其计入治疗总量。
    */
   onAnyHeal(event: HealEvent) {
     if (!event.tick) {
@@ -66,9 +63,9 @@ class Ironbark extends Analyzer {
     }
   }
 
-  /** We need the damage taken by the target during Ironbark in order to calculate the damage
-   *  reduction, which isn't present in the main event stream we have. This forms and sends the
-   *  required custom query */
+  /**
+   * 我们需要获取目标在铁木树皮期间受到的伤害，以计算伤害减免。这部分数据不在主事件流中，因此需要通过自定义查询来获取。
+   */
   loadDamageTakenDuringIronbark() {
     fetchWcl(`report/tables/damage-taken/${this.owner.report.code}`, {
       start: this.owner.fight.start_time,
@@ -103,25 +100,23 @@ class Ironbark extends Analyzer {
     if (this.ironbarkCount > 0) {
       return (
         <Statistic
-          position={STATISTIC_ORDER.OPTIONAL(5)} // number based on talent row
+          position={STATISTIC_ORDER.OPTIONAL(5)} // 基于天赋层数的编号
           size="flexible"
           tooltip={
             <>
-              Ironbark both mitigates damage the target takes and increases your healing on the
-              target. The displayed number is the average amount of damage both mitigated and healed
-              per Ironbark cast. The healing counted is only the amount boosted by Ironbark. You
-              cast Ironbark <strong>{this.ironbarkCount}</strong> times over the encounter.
+              铁木树皮同时减少目标受到的伤害，并增加你的持续治疗效果。显示的数字为每次施放铁木树皮时，平均减少的伤害和提升的治疗效果。治疗量仅包括铁木树皮提升的部分。你在战斗中共施放了{' '}
+              <strong>{this.ironbarkCount}</strong> 次铁木树皮。
               <ul>
                 <li>
-                  <strong>{formatNumber(this.damageReducedPerCast)}</strong> damage reduced per cast
+                  每次施放平均减少的伤害：<strong>{formatNumber(this.damageReducedPerCast)}</strong>
                 </li>
                 <li>
-                  <strong>{formatNumber(this.healBoostedPerCast)}</strong> healing boosted per cast
+                  每次施放提升的治疗量：<strong>{formatNumber(this.healBoostedPerCast)}</strong>
                 </li>
               </ul>
-              The total damage prevented + healed over the all casts was{' '}
-              <strong>{formatNumber(this.damageReduced + this.boostedIronbarkHealing)}</strong>{' '}
-              While this amount is not counted in your healing done, this is equivalent to{' '}
+              总计减少的伤害和提升的治疗为{' '}
+              <strong>{formatNumber(this.damageReduced + this.boostedIronbarkHealing)}</strong>
+              。尽管这些量不会计入你的治疗总量，但这相当于你的总治疗量的{' '}
               <strong>
                 {formatPercentage(
                   this.owner.getPercentageOfTotalHealingDone(
@@ -129,15 +124,15 @@ class Ironbark extends Analyzer {
                   ),
                 )}
                 %
-              </strong>{' '}
-              of your total healing.
+              </strong>
+              。
             </>
           }
         >
           <BoringValue
             label={
               <>
-                <SpellIcon spell={SPELLS.IRONBARK} /> Average Ironbark mitigated and healed
+                <SpellIcon spell={SPELLS.IRONBARK} /> 平均减少的伤害和提升的治疗量
               </>
             }
           >

@@ -32,13 +32,12 @@ const CONVOKE_FLOURISH_EXTENSION = 4000;
 const FLOURISH_HEALING_INCREASE = 0.25;
 
 /**
- * **Flourish**
- * Spec Talent Tier 8
+ * **繁茂**
+ * 专精天赋 第八层
  *
- * Extends the duration of all of your heal over time effects on friendly targets within 60 yards by 6 sec,
- * and increases the rate of your heal over time effects by 25% for 6 sec.
+ * 延长所有友方目标上的持续治疗效果（HoT）6秒，并在6秒内提升HoT的治疗速率25%。
  *
- * (Flourishes that proc from Convoke the Spirits are half duration)
+ * （由万灵之召触发的繁茂持续时间减半）
  */
 class Flourish extends Analyzer {
   static dependencies = {
@@ -56,7 +55,7 @@ class Flourish extends Analyzer {
   rampTrackers: FlourishTracker[] = [];
   lastCastTimestamp?: number;
   hardcastCount: number = 0;
-  wgsExtended = 0; // tracks how many flourishes extended Wild Growth
+  wgsExtended = 0; // 记录繁茂延长了多少次野性成长
 
   currentRateAttribution: MutableAmount = { amount: 0 };
 
@@ -154,7 +153,7 @@ class Flourish extends Analyzer {
     }
   }
 
-  /** Guide fragment showing a breakdown of each Flourish cast */
+  /** 指南部分，显示每次繁茂施放的详细信息 */
   get guideCastBreakdown() {
     const explanation = (
       <>
@@ -162,16 +161,12 @@ class Flourish extends Analyzer {
           <strong>
             <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />
           </strong>{' '}
-          requires a ramp more than any of your other cooldowns, as its power is based almost
-          entirely in the HoTs present when cast. Cast many Rejuvenations, and then a Wild Growth a
-          few seconds before you're ready to Flourish.
+          比你其他的冷却技能更需要事先铺垫，其效果几乎完全依赖施放时的HoTs数量。施放多次回春术，然后在准备施放繁茂前几秒施放野性成长。
         </p>
         {this.selectedCombatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) && (
           <p>
-            When pairing this with <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />, the Convoke should
-            ALWAYS be cast first. This is because the Convoke will produce many HoTs which can be
-            extended, but also because it could proc a Flourish thus allowing you to save the
-            hardcast.
+            当与 <SpellLink spell={SPELLS.CONVOKE_SPIRITS} />{' '}
+            配合使用时，万灵之召应始终优先施放。这是因为万灵之召会生成许多可延长的HoTs，而且它还可能触发繁茂，从而节省硬施法。
           </p>
         )}
       </>
@@ -179,8 +174,8 @@ class Flourish extends Analyzer {
 
     const data = (
       <div>
-        <strong>Per-Cast Breakdown</strong>
-        <small> - click to expand</small>
+        <strong>每次施放的详细信息</strong>
+        <small> - 点击展开</small>
         {this.rampTrackers.map((cast, ix) => {
           const castTotalHealing = cast.extensionAttribution.healing + cast.rateAttribution.amount;
 
@@ -188,7 +183,7 @@ class Flourish extends Analyzer {
             <>
               @ {this.owner.formatTimestamp(cast.timestamp)} &mdash;{' '}
               <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} /> ({formatNumber(castTotalHealing)}{' '}
-              healing)
+              治疗量)
             </>
           );
 
@@ -204,37 +199,35 @@ class Flourish extends Analyzer {
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.WILD_GROWTH} /> ramp
+                <SpellLink spell={SPELLS.WILD_GROWTH} /> 积累
               </>
             ),
             result: <PassFailCheckmark pass={wgRamp} />,
-            details: <>({cast.wgsOnCast} HoTs active)</>,
+            details: <>({cast.wgsOnCast} 个HoTs激活)</>,
           });
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.REJUVENATION} /> ramp
+                <SpellLink spell={SPELLS.REJUVENATION} /> 积累
               </>
             ),
             result: <PassFailCheckmark pass={rejuvRamp} />,
-            details: <>({cast.rejuvsOnCast} HoTs active)</>,
+            details: <>({cast.rejuvsOnCast} 个HoTs激活)</>,
           });
           this.selectedCombatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT) &&
             checklistItems.push({
               label: (
                 <>
-                  Don't clip existing <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />{' '}
+                  不要剪切已有的 <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />{' '}
                   <Tooltip
                     hoverable
                     content={
                       <>
-                        <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> can proc{' '}
-                        <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />. After Convoking, always
-                        check to see if you get a proc before Flourishing. If you got a proc, you
-                        need to wait before Flourishing so you don't overwrite the buff and lose a
-                        lot of duration. If you got an{' '}
-                        <i className="glyphicon glyphicon-remove fail-mark" /> here, it means you
-                        overwrote an existing Flourish.
+                        <SpellLink spell={SPELLS.CONVOKE_SPIRITS} /> 可以触发{' '}
+                        <SpellLink spell={TALENTS_DRUID.FLOURISH_TALENT} />
+                        。万灵之召后，始终检查是否触发了繁茂。如果触发了，你需要等待一段时间再施放繁茂，避免覆盖增益并丢失大量持续时间。如果这里显示
+                        <i className="glyphicon glyphicon-remove fail-mark" />
+                        ，说明你覆盖了已有的繁茂。
                       </>
                     }
                   >
@@ -264,42 +257,37 @@ class Flourish extends Analyzer {
 
   statistic() {
     if (!this.selectedCombatant.hasTalent(TALENTS_DRUID.FLOURISH_TALENT)) {
-      return; // module needs to stay active for convoke, but we shouldn't display stat
+      return; // 模块需要对万灵之召保持激活，但不应显示统计信息
     }
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(8)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(8)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the sum of the healing enabled by the HoT extension and the HoT rate increase.
-            Due to limitations in the way we do healing attribution, there may be some
-            double-counting between the Extension and Increased Rate values, meaning the true amount
-            attributable will be somewhat lower than listed.
+            这是HoT延长和HoT速率提升所产生的治疗总和。由于治疗归属的计算限制，延长和提升速率的治疗值可能存在重复计算，因此实际的治疗量会比列出的稍低。
             <ul>
               <li>
-                Extension:{' '}
+                延长：{' '}
                 <strong>{this.owner.formatItemHealingDone(this.totalExtensionHealing)}</strong>
               </li>
               <li>
-                Increased Rate:{' '}
+                提升速率：{' '}
                 <strong>{this.owner.formatItemHealingDone(this.totalRateHealing)}</strong>
               </li>
               <li>
-                Wild Growths Casts Extended:{' '}
+                野性成长被延长次数：{' '}
                 <strong>
                   {this.wgsExtended} / {this.hardcastCount}
                 </strong>
               </li>
               <li>
-                Average Healing per Cast: <strong>{formatNumber(this.healingPerCast)}</strong>
+                平均每次施放的治疗量： <strong>{formatNumber(this.healingPerCast)}</strong>
               </li>
             </ul>
             <br />
-            For the included table, note that extension healing for a flourish cast near the end of
-            a fight might have lower than expected numbers because extension healing isn't tallied
-            until the HoT has ticked past its original duration.
+            对于表格中的数据，注意如果在战斗结束前施放繁茂，延长治疗的数值可能会比预期的低，因为延长治疗在HoT超过原始持续时间后才会计算。
           </>
         }
         dropdown={
@@ -307,10 +295,10 @@ class Flourish extends Analyzer {
             <table className="table table-condensed">
               <thead>
                 <tr>
-                  <th>Cast</th>
-                  <th>HoTs Extended</th>
-                  <th>Extension Healing</th>
-                  <th>Rate Healing</th>
+                  <th>施放</th>
+                  <th>延长的HoTs</th>
+                  <th>延长治疗</th>
+                  <th>速率治疗</th>
                 </tr>
               </thead>
               <tbody>
@@ -336,19 +324,19 @@ class Flourish extends Analyzer {
   }
 }
 
-/** A tracker Flourish cast checklist stuff */
+/** 追踪繁茂施放的信息 */
 interface FlourishTracker {
-  /** Cast's timestamp */
+  /** 施放时间戳 */
   timestamp: number;
-  /** The attribution object for all healing caused by the HoT extension */
+  /** HoT延长造成的治疗归属对象 */
   extensionAttribution: Attribution;
-  /** The attribution object for all healing caused by the HoT rate increase */
+  /** HoT速率提升造成的治疗归属对象 */
   rateAttribution: MutableAmount;
-  /** The number of Wild Growths out at the moment this Convoke is cast */
+  /** 施放繁茂时的野性成长数量 */
   wgsOnCast: number;
-  /** The number of Rejuvs out at the moment this Convoke is cast */
+  /** 施放繁茂时的回春术数量 */
   rejuvsOnCast: number;
-  /** True iff this cast clipped an existing Flourish buff */
+  /** 如果剪切了已有的繁茂增益则为 true */
   clipped: boolean;
 }
 

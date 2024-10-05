@@ -6,7 +6,7 @@ import CastEfficiencyBar from 'parser/ui/CastEfficiencyBar';
 import { GapHighlight } from 'parser/ui/CooldownBar';
 
 /**
- * Represents a cooldown that we might want to have show up in the graph. Example:
+ * 代表我们希望在图表中显示的冷却技能。示例：
  *
  * @example
  *   {
@@ -21,28 +21,27 @@ export type Cooldown = {
 
 type CooldownGraphSubsectionProps = {
   /**
-   * Any cooldowns that we want to render in our graph.
+   * 我们希望在图表中渲染的冷却技能列表。
    */
   cooldowns: Cooldown[];
   /**
-   * A title that we may want to render as part of the subsection.
+   * 我们可能希望在子部分中渲染的标题。
    */
   title?: string;
   /**
-   * A description that we may want to render as part of the subsection.
+   * 我们可能希望在子部分中渲染的描述。
    */
   description?: JSX.Element;
   /**
-   * How many casts of a spell will remove its icon from the graph? Defaults to 10.
+   * 施法多少次会将其图标从图表中移除？默认值为10。
    */
   tooManyCasts?: number;
 };
 
 /**
- * Renders a subsection for a Guide that contains cast efficiency information about cooldowns that
- * were used during a fight.
+ * 渲染一个指南的子部分，其中包含在战斗中使用的冷却技能的施法效率信息。
  *
- * Needs a list of {@link Cooldown}s so that it can properly process them.
+ * 需要一个{@link Cooldown}的列表，以便能够正确处理它们。
  */
 const CooldownGraphSubsection = ({
   cooldowns,
@@ -66,10 +65,8 @@ const CooldownGraphSubsection = ({
 
   description = description ?? (
     <>
-      <strong>Cooldown Graph</strong> - this graph shows when you used your cooldowns and how long
-      you waited to use them again. Grey segments show when the spell was available, yellow segments
-      show when the spell was cooling down. Red segments highlight times when you could have fit a
-      whole extra use of the cooldown.
+      <strong>冷却技能图表</strong> -
+      此图表显示了你使用冷却技能的时间以及你再次使用它们的等待时间。灰色段显示法术可用时，黄色段显示法术正在冷却时。红色段突出显示了你可以再使用一次冷却技能的时间。
     </>
   );
 

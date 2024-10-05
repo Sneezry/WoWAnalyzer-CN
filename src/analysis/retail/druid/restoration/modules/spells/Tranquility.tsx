@@ -18,7 +18,7 @@ import { QualitativePerformance } from 'parser/ui/QualitativePerformance';
 const MAX_TRANQ_TICKS = 5;
 
 /**
- * Tracks stats relating to Tranquility
+ * 追踪宁静技能的相关统计数据
  */
 class Tranquility extends Analyzer {
   static dependencies = {
@@ -71,7 +71,7 @@ class Tranquility extends Analyzer {
     }
   }
 
-  /** Guide fragment showing a breakdown of each Tranquility cast */
+  /** 显示每次宁静施放的分解 */
   get guideCastBreakdown() {
     const explanation = (
       <>
@@ -79,28 +79,25 @@ class Tranquility extends Analyzer {
           <strong>
             <SpellLink spell={SPELLS.TRANQUILITY_CAST} />
           </strong>{' '}
-          is the most independent of your cooldowns, and the one most likely to be assigned
-          explicitly by your raid leader. It should typically be planned for a specific mechanic.
+          是你最独立的冷却技能之一，并且最有可能由团队领袖明确分配。通常应为特定的机制进行规划使用。
         </p>
         <p>
-          The vast majority of Tranquility's healing is direct and not from the HoT. Do NOT use the
-          HoT to ramp. Watch your positioning when you cast - you want to be able to channel full
-          duration without moving.
+          宁静的大部分治疗是直接治疗，而非来自持续治疗效果。**不要**使用持续治疗效果来提前准备。施放时要注意你的站位——你需要确保自己能够在不移动的情况下完成完整引导。
         </p>
       </>
     );
 
     const data = (
       <div>
-        <strong>Per-Cast Breakdown</strong>
-        <small> - click to expand</small>
+        <strong>每次施放分解</strong>
+        <small> - 点击展开</small>
         {this.tranqCasts.map((cast, ix) => {
           const castTotalHealing = cast.directHealing + cast.periodicHealing;
           const header = (
             <>
               @ {this.owner.formatTimestamp(cast.timestamp)} &mdash;{' '}
-              <SpellLink spell={SPELLS.TRANQUILITY_CAST} /> ({formatNumber(castTotalHealing)}{' '}
-              healing)
+              <SpellLink spell={SPELLS.TRANQUILITY_CAST} /> （{formatNumber(castTotalHealing)}{' '}
+              治疗量）
             </>
           );
 
@@ -116,32 +113,30 @@ class Tranquility extends Analyzer {
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.WILD_GROWTH} /> ramp
+                <SpellLink spell={SPELLS.WILD_GROWTH} /> 提升
               </>
             ),
             result: <PassFailCheckmark pass={wgRamp} />,
-            details: <>({cast.wgsOnCast} HoTs active)</>,
+            details: <>（{cast.wgsOnCast} 个HoT活跃）</>,
           });
           checklistItems.push({
             label: (
               <>
-                <SpellLink spell={SPELLS.REJUVENATION} /> ramp
+                <SpellLink spell={SPELLS.REJUVENATION} /> 提升
               </>
             ),
             result: <PassFailCheckmark pass={rejuvRamp} />,
-            details: <>({cast.rejuvsOnCast} HoTs active)</>,
+            details: <>（{cast.rejuvsOnCast} 个HoT活跃）</>,
           });
           checklistItems.push({
             label: (
               <>
-                Channeled full duration{' '}
+                完整引导{' '}
                 <Tooltip
                   hoverable
                   content={
                     <>
-                      Every tick of Tranquility is very powerful - plan ahead so you're in a
-                      position to channel it for its full duration, and be careful not to clip ticks
-                      at the end.
+                      宁静的每个治疗跳数都非常强大——提前规划站位，确保你能够在不被打断的情况下完成完整的引导，并且不要在最后跳数时剪断。
                     </>
                   }
                 >
@@ -154,19 +149,19 @@ class Tranquility extends Analyzer {
             result: <PassFailCheckmark pass={channeledMaxTicks} />,
             details: (
               <>
-                ({cast.channeledTicks} / {MAX_TRANQ_TICKS} ticks)
+                （{cast.channeledTicks} / {MAX_TRANQ_TICKS} 跳）
               </>
             ),
           });
 
           const detailItems: CooldownExpandableItem[] = [];
           detailItems.push({
-            label: 'Direct Healing',
+            label: '直接治疗',
             result: '',
             details: <>{formatNumber(cast.directHealing)}</>,
           });
           detailItems.push({
-            label: 'Periodic Healing',
+            label: '周期性治疗',
             result: '',
             details: <>{formatNumber(cast.periodicHealing)}</>,
           });
@@ -189,17 +184,17 @@ class Tranquility extends Analyzer {
 }
 
 interface TranquilityCast {
-  /** Timestamp of the start of the Tranquility channel */
+  /** 宁静引导开始的时间戳 */
   timestamp: number;
-  /** The healing from this cast's direct portion */
+  /** 此次施放的直接治疗量 */
   directHealing: number;
-  /** The healing from this cast's HoTs */
+  /** 此次施放的持续治疗量 */
   periodicHealing: number;
-  /** The number of Wild Growths out at the moment this Convoke is cast */
+  /** 施放宁静时激活的野性成长数量 */
   wgsOnCast: number;
-  /** The number of Rejuvs out at the moment this Convoke is cast */
+  /** 施放宁静时激活的愈合数量 */
   rejuvsOnCast: number;
-  /** The number of ticks that were channeled in this cast */
+  /** 此次引导的治疗跳数 */
   channeledTicks: number;
 }
 

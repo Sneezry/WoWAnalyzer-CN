@@ -17,15 +17,15 @@ import Lifebloom from 'analysis/retail/druid/restoration/modules/spells/Lifebloo
 import { TALENTS_DRUID } from 'common/TALENTS';
 
 const PHOTOSYNTHESIS_HOT_INCREASE = 0.1;
-// Spring blossoms double dips, confirmed by Bastas
+// 春暖花开触发两次，由Bastas确认
 const PHOTOSYNTHESIS_SB_INCREASE = 0.21; //
 
 /**
- * **Photosynthesis**
- * Spec Talent Tier 10
+ * **光合作用**
+ * 专精天赋 第10层
  *
- * While your Lifebloom is on yourself, your periodic heals heal 10% faster.
- * While your Lifebloom is on an ally, your periodic heals on them have a 5% chance to cause it to bloom.
+ * 当你的生命绽放在你自己身上时，你的周期性治疗效果速度提升10%。
+ * 当你的生命绽放在盟友身上时，他们的周期性治疗效果有5%的几率触发绽放效果。
  */
 class Photosynthesis extends Analyzer {
   static dependencies = {
@@ -36,11 +36,11 @@ class Photosynthesis extends Analyzer {
   protected combatants!: Combatants;
   protected lifebloom!: Lifebloom;
 
-  /** Total healing from randomly procced blooms */
+  /** 随机触发的绽放总治疗量 */
   extraBloomHealing = 0;
-  /** Total healing from increased HoT rate due to LB on self */
+  /** 由于生命绽放在自己身上而加速的持续治疗总量 */
   increasedRateHealing = 0;
-  /** Number of random blooms */
+  /** 随机绽放次数 */
   randomProccs = 0;
 
   constructor(options: Options) {
@@ -84,7 +84,7 @@ class Photosynthesis extends Analyzer {
     ) {
       const spellId = event.ability.guid;
       if (spellId === SPELLS.REGROWTH.id && !event.tick) {
-        return; // don't want to count Regrowth direct
+        return; // 不计算愈合的直接治疗
       }
       const increase =
         spellId === SPELLS.SPRING_BLOSSOMS.id
@@ -105,19 +105,19 @@ class Photosynthesis extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 根据天赋行位置
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            Your Lifebloom was active on others{' '}
+            你的生命绽放在他人身上激活了{' '}
             <strong>
               {formatPercentage(this.lifebloom.othersLifebloomUptime / this.owner.fightDuration)}%
             </strong>{' '}
-            of the time:
+            的时间：
             <ul>
               <li>
-                <strong>{this.randomProccs}</strong> extra blooms
+                <strong>{this.randomProccs}</strong> 次额外绽放
               </li>
               <li>
                 <strong>
@@ -126,14 +126,14 @@ class Photosynthesis extends Analyzer {
                   )}
                   %
                 </strong>{' '}
-                total healing from extra blooms
+                的总治疗来自额外的绽放
               </li>
             </ul>
-            Your Lifebloom was active on yourself{' '}
+            你的生命绽放在你自己身上激活了{' '}
             <strong>
               {formatPercentage(this.lifebloom.selfLifebloomUptime / this.owner.fightDuration)}%
             </strong>{' '}
-            of the time:
+            的时间：
             <ul>
               <li>
                 <strong>
@@ -142,7 +142,7 @@ class Photosynthesis extends Analyzer {
                   )}
                   %
                 </strong>{' '}
-                total healing from faster ticking HoTs
+                的总治疗来自加速的持续治疗效果
               </li>
             </ul>
           </>

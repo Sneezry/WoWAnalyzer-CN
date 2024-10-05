@@ -14,11 +14,11 @@ import BoringSpellValueText from 'parser/ui/BoringSpellValueText';
 const REGROWTH_HOT_BOOST = 0.5;
 
 /**
- * **Rampant Growth**
- * Spec Talent
+ * **疯长**
+ * 专精天赋
  *
- * Regrowth's healing over time is increased by 50%,
- * and it also applies to the target of your Lifebloom.
+ * 愈合的持续治疗效果提高50%，
+ * 并且它还会应用于你的生命绽放目标。
  */
 class RampantGrowth extends Analyzer {
   static dependencies = {
@@ -53,13 +53,13 @@ class RampantGrowth extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 根据天赋行设置的位置
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This counts both the healing from Regrowth HoTs that splash onto Lifebloom targets and
-            also the boost to the healing on normally applied Regrowth HoTs
+            这统计了愈合的持续治疗溅射到生命绽放目标上的治疗量，
+            以及应用于常规愈合的持续治疗效果的增益。
           </>
         }
       >

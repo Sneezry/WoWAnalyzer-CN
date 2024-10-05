@@ -13,6 +13,7 @@ interface Props {
   recommendedFoods?: Spell[];
   expansion?: Expansion;
 }
+
 const FoodPanel = ({ recommendedFoods, expansion }: Props) => {
   const foodChecker = useAnalyzer(FoodChecker);
   const info = useInfo();
@@ -44,21 +45,21 @@ const FoodPanel = ({ recommendedFoods, expansion }: Props) => {
     <PerformanceRoundedPanel performance={performance}>
       <PanelHeader className="flex">
         <div className="flex-main">
-          <strong>Current Food Buff</strong>
+          <strong>当前食物增益</strong>
         </div>
         <div className="flex-sub">
           <Soup />
         </div>
       </PanelHeader>
       {performance === QualitativePerformance.Perfect && (
-        <p>You had the best food active when starting the fight{showCurrentFoodBuff}</p>
+        <p>您在战斗开始时激活了最佳食物增益{showCurrentFoodBuff}</p>
       )}
       {performance === QualitativePerformance.Good && (
         <>
-          <p>You had high quality food active when starting the fight{showCurrentFoodBuff}</p>
+          <p>您在战斗开始时激活了高质量的食物增益{showCurrentFoodBuff}</p>
           {recommendedFoods && (
             <Recommendations
-              header={<strong>Recommended Food Buff(s)</strong>}
+              header={<strong>推荐的食物增益</strong>}
               recommendations={recommendedFoods}
             />
           )}
@@ -66,10 +67,10 @@ const FoodPanel = ({ recommendedFoods, expansion }: Props) => {
       )}
       {performance === QualitativePerformance.Ok && (
         <>
-          <p>You did not have the best food active when starting the fight{showCurrentFoodBuff}</p>
+          <p>您在战斗开始时没有激活最佳食物增益{showCurrentFoodBuff}</p>
           {recommendedFoods && (
             <Recommendations
-              header={<strong>Recommended Food Buff(s)</strong>}
+              header={<strong>推荐的食物增益</strong>}
               recommendations={recommendedFoods}
             />
           )}
@@ -77,10 +78,10 @@ const FoodPanel = ({ recommendedFoods, expansion }: Props) => {
       )}
       {performance === QualitativePerformance.Fail && (
         <>
-          <p>You did not have any food active when starting the fight.</p>
+          <p>您在战斗开始时没有任何食物增益。</p>
           {recommendedFoods && (
             <Recommendations
-              header={<strong>Recommended Food Buff(s)</strong>}
+              header={<strong>推荐的食物增益</strong>}
               recommendations={recommendedFoods}
             />
           )}

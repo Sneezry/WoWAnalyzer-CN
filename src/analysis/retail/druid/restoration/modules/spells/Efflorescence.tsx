@@ -16,17 +16,17 @@ const EFFLO_COLOR = '#881144';
 const EFFLO_BG_COLOR = '#cca7a7';
 
 class Efflorescence extends Analyzer {
-  /** list of time periods when efflo was active */
+  /** 繁盛激活的时间段列表 */
   effloUptimes: OpenTimePeriod[] = [];
-  /** true iff we've seen at least one Efflo cast */
+  /** 如果已施放过至少一次繁盛为 true */
   hasCast: boolean = false;
 
-  /** a chronological listing of timestamps when efflo healed, and how many targets it healed */
+  /** 记录繁盛治疗的时间戳及其治疗的目标数量 */
   effloTimes: EffloTime[] = [];
 
   constructor(options: Options) {
     super(options);
-    // TODO disable this when player doesn't take talent, or leave active with a message "you should really take Efflo" .. ?
+    // TODO 当玩家没有选择天赋时禁用此功能，或提示"你真的应该选择繁盛"？
     this.addEventListener(
       Events.cast.by(SELECTED_PLAYER).spell(SPELLS.EFFLORESCENCE_CAST),
       this.onCast,
@@ -44,8 +44,7 @@ class Efflorescence extends Analyzer {
   }
 
   onHeal(event: HealEvent) {
-    // only way to detect precasts if by looking for heal events before the first cast
-    // assume the efflo lasted until the last detected heal that happens before first cast
+    // 如果在第一次施放之前检测到治疗事件，推测繁盛从战斗开始就已经激活
     if (!this.hasCast) {
       if (this.effloUptimes.length === 0) {
         this.effloUptimes.push({ start: this.owner.fight.start_time });
@@ -54,7 +53,7 @@ class Efflorescence extends Analyzer {
       this.effloUptimes[0].end = event.timestamp;
     }
 
-    // update heal times list
+    // 更新治疗时间记录
     if (this.effloTimes.length > 0) {
       const latestHeal = this.effloTimes[this.effloTimes.length - 1];
       if (latestHeal.timestamp === event.timestamp) {
@@ -65,7 +64,7 @@ class Efflorescence extends Analyzer {
     }
   }
 
-  /** Merges adjacent uptimes and 'caps' the end to the current timestamp */
+  /** 合并相邻的激活时间段，并将结束时间设定为当前时间戳 */
   _mergeAndCapUptimes(): ClosedTimePeriod[] {
     this.effloUptimes.forEach((ut) => {
       if (ut.end === undefined) {
@@ -75,15 +74,13 @@ class Efflorescence extends Analyzer {
     return mergeTimePeriods(this.effloUptimes, this.owner.currentTimestamp);
   }
 
-  /** Builds an artificial uptimes array that extrapolates based on number of targets hit */
+  /** 构建一个基于实际治疗目标数量的时间段数组 */
   _buildTargetsUptimes(): StackTimePeriod[] {
     const stackTimePeriods: StackTimePeriod[] = [];
 
     let prev: EffloTime | undefined = undefined;
     this.effloTimes.forEach((et) => {
       if (prev && !et.start) {
-        // this is slightly too generous to 'zero ticks' because it reaches back an unhasted tick duration,
-        // but it should be close enough that this is preferable to trying to do something more complicated.
         const prevTime = Math.max(prev.timestamp, et.timestamp - TICK_MS);
         stackTimePeriods.push({ start: prevTime, end: et.timestamp, stacks: et.targets });
       }
@@ -93,7 +90,7 @@ class Efflorescence extends Analyzer {
     return stackTimePeriods;
   }
 
-  /** An 'uptime' weighted by the number of targets actually being healed, using the StackTimePeriods */
+  /** 一个根据实际治疗目标数量加权的激活时间，使用 StackTimePeriods 进行计算 */
   get weightedUptime() {
     return this._buildTargetsUptimes().reduce(
       (acc, wut) => acc + ((wut.end - wut.start) * wut.stacks) / EFFLO_TARGETS,
@@ -113,23 +110,21 @@ class Efflorescence extends Analyzer {
     return this.uptime / this.owner.fightDuration;
   }
 
-  /** Guide subsection describing the proper usage of Efflorescence */
+  /** 指南子部分，描述如何正确使用繁盛 */
   get guideSubsection(): JSX.Element {
     const explanation = (
       <p>
         <b>
           <SpellLink spell={SPELLS.EFFLORESCENCE_CAST} />
         </b>{' '}
-        is extremely mana efficient if you place it where raiders are standing. Under the boss is
-        usually a safe bet. While it's acceptable to let it drop during heavy movement, you should
-        otherwise keep it active at all times.
+        如果你将其放在团队成员站立的位置，它的法力效率极高。通常情况下，放置在首领下方是一个安全的选择。虽然在大量移动时可以暂时放弃繁盛，但除此之外，你应该始终保持它的激活。
       </p>
     );
 
     const data = (
       <div>
         <RoundedPanel>
-          <strong>Effloresence uptimes</strong>
+          <strong>百花齐放激活时间</strong>
           {this.subStatistic()}
         </RoundedPanel>
       </div>
@@ -138,8 +133,8 @@ class Efflorescence extends Analyzer {
     return explanationAndDataSubsection(explanation, data, GUIDE_CORE_EXPLANATION_PERCENT);
   }
 
-  // Custom statistic shows efflo targets hit with bar thickness
-  // TODO generalize this if other stacking things want to use it?
+  // 自定义统计信息，显示繁盛目标命中数量与条形图厚度
+  // TODO 如果其他叠加效果也需要使用，可以泛化此功能
   subStatistic() {
     return (
       <div className="flex-main multi-uptime-bar">
@@ -150,15 +145,14 @@ class Efflorescence extends Analyzer {
               spell={SPELLS.EFFLORESCENCE_CAST}
             />{' '}
             <span style={{ color: EFFLO_BG_COLOR }}>
-              {formatPercentage(this.uptimePercent, 0)}% <small>active</small>
+              {formatPercentage(this.uptimePercent, 0)}% <small>激活</small>
             </span>
             <br />
             <TooltipElement
-              content={`The 'active' percentage considers the times your Effloresence is up,
-              while the 'effective' percentage takes into account the number of players it is actually healing`}
+              content={`'激活'百分比考虑了繁盛激活的时间，而'有效'百分比则考虑了实际治疗到的玩家数量。`}
             >
               <span style={{ color: EFFLO_COLOR }}>
-                {formatPercentage(this.weightedUptimePercent, 0)}% <small>effective</small>
+                {formatPercentage(this.weightedUptimePercent, 0)}% <small>有效</small>
               </span>
             </TooltipElement>
           </div>
@@ -181,26 +175,25 @@ class Efflorescence extends Analyzer {
 }
 
 /**
- * Record of the start of each efflo and also each of its heal ticks.
- * The first tick happens one tick period after the efflo is spawned,
- * and the last tick happens at roughly the same time as the despawn,
- * so when applying time periods for each tick we will extend backwards from when it happened.
+ * 记录每次繁盛的启动和每次治疗tick。
+ * 第一次tick在繁盛施放后一tick时间发生，最后一次tick大约发生在繁盛结束时，
+ * 因此每个tick的时间段将从发生时间向前推延。
  */
 type EffloTime = {
-  /** The time of this event in milliseconds */
+  /** 此事件发生的时间（毫秒） */
   timestamp: number;
-  /** The number of targets hit by this event (or zero for a start event) */
+  /** 此事件命中的目标数量（或0表示开始事件） */
   targets: number;
-  /** True iff this event represents the start of an efflo */
+  /** 如果此事件表示繁盛的开始，则为 true */
   start?: boolean;
 };
 
 type StackTimePeriod = {
-  /** Timestamp in milliseconds of the time period start */
+  /** 时间段开始的时间戳（毫秒） */
   start: number;
-  /** Timestamp in milliseconds of the time period end */
+  /** 时间段结束的时间戳（毫秒） */
   end: number;
-  /** Number of stacks present during this time period */
+  /** 此时间段内存在的层数 */
   stacks: number;
 };
 

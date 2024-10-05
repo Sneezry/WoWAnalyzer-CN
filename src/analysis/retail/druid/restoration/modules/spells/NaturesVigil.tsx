@@ -12,17 +12,17 @@ import ItemDamageDone from 'parser/ui/ItemDamageDone';
 import { SINGLE_TARGET_HEALING } from 'analysis/retail/druid/restoration/constants';
 import { SpellLink } from 'interface';
 
-// separate class for Resto because it converts healing to damage rather than other way around
+// 专门为恢复德鲁伊设计的类，因为它将治疗转换为伤害，而不是反过来
 /**
- * **Nature's Vigil**
- * Class Talent
+ * **自然的守护**
+ * 天赋技能
  *
- * All single target healing also damages a nearby enemy target for 20% of the healing done.
+ * 所有单体治疗同时会对附近的敌方目标造成相当于治疗量20%的伤害。
  */
 class NaturesVigil extends Analyzer {
-  /** Trackers for info about each cast */
+  /** 每次施放的信息追踪器 */
   nvTracker: NaturesVigilCast[] = [];
-  /** Mapping by number of the contributions to NV's damage */
+  /** 追踪单体治疗对自然的守护造成的伤害贡献 */
   stHealingDuringNv: { [spellId: number]: { id: number; amount: number } } = {};
 
   constructor(options: Options) {
@@ -76,7 +76,7 @@ class NaturesVigil extends Analyzer {
   }
 
   statistic() {
-    // calculations about NV contribution
+    // 计算自然的守护对伤害的贡献
     const stHealingInDescendingOrder = Object.values(this.stHealingDuringNv).sort(
       (a, b) => b.amount - a.amount,
     );
@@ -86,11 +86,11 @@ class NaturesVigil extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(0)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(0)} // 依据天赋行设置的位置
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            Breakdown of damage contributions:
+            伤害贡献的明细：
             <ul>
               {stHealingInDescendingOrder.map((item) => {
                 const itemPercent = item.amount / totalAmount;
@@ -110,9 +110,9 @@ class NaturesVigil extends Analyzer {
             <table className="table table-condensed">
               <thead>
                 <tr>
-                  <th>Cast</th>
-                  <th>Timestamp</th>
-                  <th>Damage</th>
+                  <th>施法</th>
+                  <th>时间戳</th>
+                  <th>伤害</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,9 +140,9 @@ class NaturesVigil extends Analyzer {
 export default NaturesVigil;
 
 interface NaturesVigilCast {
-  /** Cast's timestamp */
+  /** 施法的时间戳 */
   timestamp: number;
-  /** Damage caused by the cast */
+  /** 该次施法造成的伤害 */
   damage: number;
-  // TODO track contribution by heal
+  // TODO 追踪治疗的贡献
 }

@@ -28,7 +28,7 @@ const debug = false;
 
 const OVERHEAL_THRESHOLD = 0.75;
 
-/** Tracks stuff about Rejuvenation usage */
+/** 跟踪有关恢复的使用情况 */
 class Rejuvenation extends Analyzer {
   static dependencies = {
     healingDone: HealingDone,
@@ -42,19 +42,18 @@ class Rejuvenation extends Analyzer {
   protected combatants!: Combatants;
   protected hotTracker!: HotTrackerRestoDruid;
 
-  /** Healing stats for active hardcast rejuvenations, indexed by targetID */
+  /** 当前活跃的硬投恢复的治疗统计，以 targetID 索引 */
   activeHardcastRejuvs: { [key: number]: HealingValue } = {};
-  /** Latch to check if refresh callback has been registered with HotTracker.
-   *  (we can't just do it during constructor due to load order */
+  /** 检查是否已在 HotTracker 中注册刷新回调的锁 */
   hasCallbackRegistered: boolean = false;
 
-  /** Total casts of rejuvenation */
+  /** 总共施放的恢复次数 */
   totalRejuvsCasts = 0;
-  /** Hardcasts of rejuvenation that clipped duration */
+  /** 刷新时剪裁持续时间的硬投恢复次数 */
   earlyRefreshments = 0;
-  /** Hardcasts of rejuvenation that did not clip, but did high overheal while active */
+  /** 未剪裁但在活跃时造成高过量治疗的硬投恢复次数 */
   highOverhealCasts = 0;
-  /** Total duration clipped, in ms */
+  /** 剪裁的总持续时间，单位：毫秒 */
   timeLost = 0;
 
   constructor(options: Options) {
@@ -95,13 +94,13 @@ class Rejuvenation extends Analyzer {
   }
 
   onRejuvRefresh(event: RefreshBuffEvent | ApplyBuffStackEvent, info: RefreshInfo) {
-    // close out existing active rejuv tracker
+    // 关闭现有活跃的恢复跟踪器
     if (this.activeHardcastRejuvs[event.targetID]) {
       this._handleFinishedRejuv(this.activeHardcastRejuvs[event.targetID]);
       delete this.activeHardcastRejuvs[event.targetID];
     }
 
-    // hot tracker hook event could be refresh or applystack, but in this case we know it will be a refresh
+    // 热追踪器钩子事件可以是刷新或应用堆叠，但在这种情况下我们知道它将是刷新
     if (isFromHardcast(event as RefreshBuffEvent)) {
       this.totalRejuvsCasts += 1;
       if (info.clipped > 0) {
@@ -109,20 +108,19 @@ class Rejuvenation extends Analyzer {
         this.timeLost += info.clipped;
         debug &&
           console.log(
-            `Rejuv hardcast clipped @ ${this.owner.formatTimestamp(
+            `恢复硬投被剪裁 @ ${this.owner.formatTimestamp(
               event.timestamp,
-            )} - remaining: ${info.oldRemaining.toFixed(0)}, clipped: ${info.clipped.toFixed(0)}`,
+            )} - 剩余: ${info.oldRemaining.toFixed(0)}, 剪裁: ${info.clipped.toFixed(0)}`,
           );
       } else {
-        // we only track hardcast rejuvs that weren't clipping old ones so we don't double count
-        // early refreshes vs high overheal casts in the final tally
+        // 我们只跟踪未剪裁旧效果的硬投恢复，因此我们不会在最终统计中重复计算
         this.activeHardcastRejuvs[event.targetID] = new HealingValue();
       }
     }
   }
 
   onRejuvRemove(event: RemoveBuffEvent) {
-    // close out active rejuv tracker
+    // 关闭活跃的恢复跟踪器
     if (this.activeHardcastRejuvs[event.targetID]) {
       this._handleFinishedRejuv(this.activeHardcastRejuvs[event.targetID]);
       delete this.activeHardcastRejuvs[event.targetID];
@@ -149,10 +147,10 @@ class Rejuvenation extends Analyzer {
   }
 
   onFightEnd() {
-    debug && console.log('Total casts: ' + this.totalRejuvsCasts);
-    debug && console.log('Early refreshments: ' + this.earlyRefreshments);
-    debug && console.log('High overheal: ' + this.highOverhealCasts);
-    debug && console.log('Time lost: ' + this.timeLost);
+    debug && console.log('总施放次数: ' + this.totalRejuvsCasts);
+    debug && console.log('提前刷新次数: ' + this.earlyRefreshments);
+    debug && console.log('高过量治疗次数: ' + this.highOverhealCasts);
+    debug && console.log('时间损失: ' + this.timeLost);
   }
 
   get timeLostPerMinute() {
@@ -183,7 +181,7 @@ class Rejuvenation extends Analyzer {
     return totalRejuvHealing / this.totalRejuvsCasts;
   }
 
-  /** Guide subsection describing the proper usage of Rejuvenation */
+  /** 指导小节描述恢复的正确用法 */
   get guideSubsection(): JSX.Element {
     const explanation = (
       <>
@@ -191,37 +189,33 @@ class Rejuvenation extends Analyzer {
           <b>
             <SpellLink spell={SPELLS.REJUVENATION} />
           </b>{' '}
-          is your primary filler spell. It can be used on injured raiders or pre-cast on full health
-          raiders when ramping for incoming raid damage. Don't spam it unmotivated - you'll run out
-          of mana.
+          是你的主要填充法术。它可以用于受伤的团队成员，或在即将到来的团队伤害之前对满血的团队成员进行预施法。不要随意施放——这样你会耗尽法力。
         </p>
         <p>
-          Don't overwrite on targets with a recent Rejuvenation - you'll clip duration. Some
-          high-overheal Rejuvs are unavoidable due to heal sniping, but if a large proportion of
-          them are you might be casting too much.
+          不要覆盖最近施放过恢复的目标——这样你会剪裁持续时间。有些高过量治疗的恢复是不可避免的，可能是由于抢治疗，但如果大部分都是这样，你可能施放过多。
         </p>
       </>
     );
 
     const goodRejuvs = {
       count: this.goodRejuvs,
-      label: 'Good Rejuvenations',
+      label: '良好的恢复',
     };
     const highOverhealRejuvs = {
       count: this.highOverhealCasts,
-      label: 'High-overheal Rejuvenations',
+      label: '高过量治疗的恢复',
     };
     const clippedRejuvs = {
       count: this.earlyRefreshments,
-      label: 'Clipped duration Rejuvenations',
+      label: '剪裁持续时间的恢复',
     };
     const data = (
       <div>
-        <strong>Rejuvenation cast breakdown</strong>
+        <strong>恢复施放分解</strong>
         <small>
           {' '}
-          - Green is a good cast, Yellow is a cast with very high overheal, and Red is an early
-          refresh that clipped duration. Mouseover for more details.
+          -
+          绿色表示良好施放，黄色表示高过量治疗施放，红色表示剪裁持续时间的提前刷新。鼠标悬停以获取更多细节。
         </small>
         <GradiatedPerformanceBar good={goodRejuvs} ok={highOverhealRejuvs} bad={clippedRejuvs} />
       </div>
@@ -233,25 +227,25 @@ class Rejuvenation extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.CORE(18)} // chosen for fixed ordering of general stats
+        position={STATISTIC_ORDER.CORE(18)} // 选择用于一般统计的固定顺序
         size="flexible"
         tooltip={
           <>
-            You refreshed Rejuvenation early <strong>{this.earlyRefreshments} times</strong>, losing
-            a total of <strong>{this.timeLostInSeconds.toFixed(1)}s</strong> of HoT duration (
-            {this.timeLostInSecondsPerMinute.toFixed(1)}s per minute).
+            你提前刷新了恢复<strong>{this.earlyRefreshments} 次</strong>，损失了总共
+            <strong>{this.timeLostInSeconds.toFixed(1)}秒</strong>的 HoT 持续时间 (
+            {this.timeLostInSecondsPerMinute.toFixed(1)}秒每分钟)。
           </>
         }
       >
         <BoringValue
           label={
             <>
-              <SpellIcon spell={SPELLS.REJUVENATION} /> Early Rejuvenation refreshes
+              <SpellIcon spell={SPELLS.REJUVENATION} /> 提前恢复刷新
             </>
           }
         >
           <>
-            {this.earlyRefreshmentsPerMinute.toFixed(1)} <small>per minute</small>
+            {this.earlyRefreshmentsPerMinute.toFixed(1)} <small>每分钟</small>
           </>
         </BoringValue>
       </Statistic>

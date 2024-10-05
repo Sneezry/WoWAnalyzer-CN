@@ -18,11 +18,10 @@ const ABUNDANCE_INCREASED_CRIT = 0.08;
 const IMP_REGROWTH_CRIT_BONUS = 0.4;
 
 /**
- * **Abundance**
- * Spec Talent Tier 4
+ * **丰饶**
+ * 天赋 第四层
  *
- * For each Rejuvenation you have active, Regrowth's cost is reduced by 8% and critical effect
- * chance is increased by 8%, to a maximum of 96%.
+ * 每个你激活的回春术将使愈合的法力消耗减少8%，暴击几率提高8%，最多叠加至96%。
  */
 class Abundance extends Analyzer.withDependencies({
   statTracker: StatTracker,
@@ -30,17 +29,17 @@ class Abundance extends Analyzer.withDependencies({
 }) {
   hasImpRegrowth: boolean;
 
-  /** Total healing attributable to increased crit */
+  /** 由增加的暴击导致的总治疗量 */
   totalEffCritHealing = 0;
-  /** Total crit percent cumulatively (divide by casts for avg) - respects 100% cap */
+  /** 总暴击百分比累积（除以施法次数以获得平均值）- 受100%的限制 */
   totalEffCritGain = 0;
-  /** Total cumulative stacks */
+  /** 总堆叠数 */
   totalStacks: number = 0;
-  /** Total cumulative stacks for mana casts */
+  /** 用于法力施法的总堆叠数 */
   totalManaStacks: number = 0;
-  /** Number of non-free Regrowth casts */
+  /** 非免费愈合施法次数 */
   manaCasts: number = 0;
-  /** Number of Regrowths (including free from Clearcast/NS or procced from Convoke) */
+  /** 所有愈合施法（包括清晰预兆/自然迅捷触发的免费施法） */
   allHits: number = 0;
 
   constructor(options: Options) {
@@ -51,17 +50,17 @@ class Abundance extends Analyzer.withDependencies({
     this.addEventListener(Events.heal.by(SELECTED_PLAYER).spell(SPELLS.REGROWTH), this.onHit);
   }
 
-  // The crit bonus is relevant for all Regrowth direct heals - deal with it here
+  // 暴击加成适用于所有愈合的直接治疗
   onHit(event: HealEvent) {
     if (event.tick) {
-      return; // only tally the direct heals
+      return; // 只统计直接治疗
     }
     const stacks = this.selectedCombatant.getOwnBuffStacks(SPELLS.ABUNDANCE_BUFF);
 
     this.allHits += 1;
     this.totalStacks += stacks;
 
-    // more complex calc for effective crit gain because we can't go over 100%
+    // 复杂的暴击增益计算，因为暴击不能超过100%
     let currCrit = this.deps.statTracker.currentCritPercentage;
     if (this.hasImpRegrowth) {
       const tar = this.deps.combatants.getEntity(event);
@@ -80,13 +79,13 @@ class Abundance extends Analyzer.withDependencies({
     );
   }
 
-  // The mana discount is relevant only for non-free Regrowth casts, deal with it here
+  // 法力消耗减少仅适用于非免费愈合施法
   onCast(event: CastEvent) {
     if (
       this.selectedCombatant.hasOwnBuff(SPELLS.CLEARCASTING_BUFF, MS_BUFFER) ||
       this.selectedCombatant.hasBuff(SPELLS.INNERVATE.id, event.timestamp, MS_BUFFER)
     ) {
-      return; // don't tally already free casts
+      return; // 不统计已经免费的施法
     }
     const stacks = this.selectedCombatant.getBuffStacks(SPELLS.ABUNDANCE_BUFF.id);
 
@@ -94,22 +93,22 @@ class Abundance extends Analyzer.withDependencies({
     this.totalManaStacks += stacks;
   }
 
-  /** Average stacks for any Regrowth direct heal */
+  /** 愈合直接治疗的平均堆叠数 */
   get avgStacks() {
     return this.allHits === 0 ? 0 : this.totalStacks / this.allHits;
   }
 
-  /** Average stacks for Regrowth casts that weren't free */
+  /** 非免费愈合施法的平均堆叠数 */
   get avgManaStacks() {
     return this.manaCasts === 0 ? 0 : this.totalManaStacks / this.manaCasts;
   }
 
-  /** Average discount to non-free Regrowth casts */
+  /** 非免费愈合施法的平均法力消耗减少 */
   get avgPercentManaSaved() {
     return ABUNDANCE_MANA_REDUCTION * this.avgManaStacks;
   }
 
-  /** Average effective crit gain for Regrowth hits */
+  /** 愈合施法的平均暴击增益 */
   get avgCritGain() {
     return this.allHits === 0 ? 0 : this.totalEffCritGain / this.allHits;
   }
@@ -117,27 +116,26 @@ class Abundance extends Analyzer.withDependencies({
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(4)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(4)} // 基于天赋层数的编号
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
             <p>
-              The listed average stacks counts all direct Regrowth heals. The mana portion is only
-              relevant to non-free casts however - your average stacks on non-free Regrowth casts
-              was <strong>{this.avgManaStacks.toFixed(1)}</strong>.
+              显示的平均堆叠数包括所有直接的愈合治疗。但法力部分只适用于非免费施法——你在非免费愈合施法中的平均堆叠数为{' '}
+              <strong>{this.avgManaStacks.toFixed(1)}</strong>。
             </p>
             <p>
               <ul>
                 <li>
-                  Avg mana discount:{' '}
+                  平均法力消耗减少：{' '}
                   <strong>{formatPercentage(this.avgPercentManaSaved, 1)}%</strong>
                 </li>
                 <li>
-                  Avg crit gained: <strong>{formatPercentage(this.avgCritGain, 1)}%</strong>
+                  平均暴击增益：<strong>{formatPercentage(this.avgCritGain, 1)}%</strong>
                 </li>
                 <li>
-                  Total healing gained from extra crits:{' '}
+                  来自额外暴击的总治疗增益：{' '}
                   <strong>
                     {formatPercentage(
                       this.owner.getPercentageOfTotalHealingDone(this.totalEffCritHealing),
@@ -148,17 +146,14 @@ class Abundance extends Analyzer.withDependencies({
                 </li>
               </ul>
             </p>
-            <p>
-              Listed average crit gain may be lower than "stacks times bonus-per-stack" because crit
-              gain over 100% crit is not counted.
-            </p>
+            <p>显示的平均暴击增益可能低于“堆叠数乘以每堆叠加成”，因为暴击增益超过100%不会计入。</p>
           </>
         }
       >
         <BoringValue
           label={
             <>
-              <SpellIcon spell={TALENTS_DRUID.ABUNDANCE_TALENT} /> Average Abundance stacks
+              <SpellIcon spell={TALENTS_DRUID.ABUNDANCE_TALENT} /> 平均丰饶堆叠数
             </>
           }
         >

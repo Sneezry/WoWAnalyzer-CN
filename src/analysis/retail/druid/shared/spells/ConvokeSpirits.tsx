@@ -23,12 +23,11 @@ import Combatant from 'parser/core/Combatant';
 const DEBUG = false;
 
 /*
- * For several spells we include multiple IDs for the same spell -
- * probably only one ID is being used but as of this writing neither Abelito nor Sref
- * has cared enough to find out which.
+ * 对于某些法术，我们包含多个ID，尽管通常只使用其中一个。
+ * 但目前没有深入研究究竟是哪一个。
  */
 
-/** All convokable spells that 'hit' with a buff application */
+/** 会通过buff应用来“命中”的所有灵魂鸣唱法术 */
 const CONVOKE_BUFF_SPELLS = [
   SPELLS.REJUVENATION,
   SPELLS.REJUVENATION_GERMINATION,
@@ -38,18 +37,18 @@ const CONVOKE_BUFF_SPELLS = [
   TALENTS.FERAL_FRENZY_TALENT,
   SPELLS.WILD_GROWTH,
   TALENTS.FLOURISH_TALENT,
-  SPELLS.STARFALL_CAST, // apparently this is also the ID for the buff
+  SPELLS.STARFALL_CAST, // 该ID也是buff的ID
 ];
-/** All convokable spells that 'hit' with a debuff application */
+/** 会通过debuff应用来“命中”的所有灵魂鸣唱法术 */
 const CONVOKE_DEBUFF_SPELLS = [
   SPELLS.MOONFIRE_DEBUFF,
   SPELLS.MOONFIRE_FERAL,
   SPELLS.RAKE_BLEED,
   SPELLS.THRASH_BEAR_DOT,
 ];
-/** All convokable spells that 'hit' with direct healing */
+/** 通过直接治疗“命中”的所有灵魂鸣唱法术 */
 const CONVOKE_HEAL_SPELLS = [SPELLS.SWIFTMEND];
-/** All convokable spells that 'hit' with direct damage */
+/** 通过直接伤害“命中”的所有灵魂鸣唱法术 */
 const CONVOKE_DAMAGE_SPELLS = [
   SPELLS.WRATH,
   SPELLS.WRATH_MOONKIN,
@@ -62,17 +61,17 @@ const CONVOKE_DAMAGE_SPELLS = [
   SPELLS.MANGLE_BEAR,
   TALENTS.PULVERIZE_TALENT,
 ];
-/** Convokable spells that do direct damage (and possibly also a DoT portion) - for damage tallying */
+/** 造成直接伤害的灵魂鸣唱法术（可能还有DoT部分） - 用于伤害统计 */
 const CONVOKE_DIRECT_DAMAGE_SPELLS = [
   ...CONVOKE_DAMAGE_SPELLS,
   SPELLS.RAKE,
   SPELLS.THRASH_BEAR,
   SPELLS.MOONFIRE_DEBUFF,
   SPELLS.MOONFIRE_FERAL,
-  // shouldn't be shown as a hit because not its own spell, but should still be damage tallied
+  // 不应显示为命中，因为它不是单独的法术，但仍应被计入伤害
   SPELLS.RAMPANT_FEROCITY,
 ];
-/** Convokable spells that have travel time */
+/** 有旅行时间的灵魂鸣唱法术 */
 const SPELLS_WITH_TRAVEL_TIME = [
   SPELLS.STARSURGE_AFFINITY,
   SPELLS.STARSURGE_MOONKIN,
@@ -81,7 +80,7 @@ const SPELLS_WITH_TRAVEL_TIME = [
   SPELLS.WRATH_MOONKIN,
 ];
 const SPELL_IDS_WITH_TRAVEL_TIME = SPELLS_WITH_TRAVEL_TIME.map((s) => s.id);
-/** Convokable spells that can hit multiple targets */
+/** 可以击中多个目标的灵魂鸣唱法术 */
 const SPELL_IDS_WITH_AOE = [
   SPELLS.MOONFIRE_DEBUFF.id,
   SPELLS.MOONFIRE_FERAL.id,
@@ -89,8 +88,7 @@ const SPELL_IDS_WITH_AOE = [
   SPELLS.RAVAGE_DOTC_CAT,
   SPELLS.THRASH_BEAR_DOT.id,
   SPELLS.WILD_GROWTH.id,
-  // Rejuv and Regrowth don't normally AoE, but Rampant Growth and PotA procs can make them
-  // hit extra targets - adding them to this list is best way to control for that
+  // 回春术和愈合通常不是AOE，但Rampant Growth和PotA触发可能会使其击中额外目标
   SPELLS.REJUVENATION.id,
   SPELLS.REJUVENATION_GERMINATION.id,
   SPELLS.REGROWTH.id,
@@ -100,14 +98,13 @@ const SPELLS_CAST = 16;
 
 const AOE_BUFFER_MS = 100;
 const AFTER_CHANNEL_BUFFER_MS = 50;
-const TRAVEL_BUFFER_MS = 2_000;
+const TRAVEL_BUFFER_MS = 2000;
 
 /**
- * **Convoke the Spirits**
- * Spec Talent
+ * **灵魂鸣唱**
+ * 专精天赋
  *
- * Call upon the Night Fae for an eruption of energy,
- * channeling a rapid flurry of 16 (12 for Resto) Druid spells and abilities over 4 sec.
+ * 召唤暗夜妖精，爆发能量，快速引导16个（恢复德鲁伊为12个）德鲁伊法术和技能，持续4秒。
  */
 class ConvokeSpirits extends Analyzer {
   static dependencies = {
@@ -118,41 +115,40 @@ class ConvokeSpirits extends Analyzer {
   protected abilities!: Abilities;
   protected activeDruidForm!: ActiveDruidForm;
 
-  /** The number of times Convoke has been cast */
+  /** 灵魂鸣唱的施放次数 */
   cast: number = 0;
-  /** The number of spells cast by a full Convoke channel */
+  /** 每次完整灵魂鸣唱施放的法术数量 */
   spellsPerCast: number;
-  /** Timestamp of the most recent AoE spell hit registered during Convoke - used to avoid double counts */
+  /** 最近一次在灵魂鸣唱期间注册的AOE法术命中的时间戳 - 用于避免重复计数 */
   mostRecentAoeTimestamp = 0;
-  /** Mapping from convoke cast number to a tracker for that cast - note that index zero will always be empty */
+  /** 从灵魂鸣唱施放次数到该施放的跟踪器的映射 - 注意索引零将始终为空 */
   convokeTracker: ConvokeCast[] = [];
   /**
-   * A mapping from spellId of a spell with travel time to the last cast for that ID.
-   * If we register a 'hit' during convoke, but the cast was within plausible travel time and
-   * had same target, we assume the hit was due to a hardcast (and not convoke).
-   * Cast entries will be cleared when we find a matching 'hit'.
+   * 从有旅行时间的法术ID到该ID上次施放的映射。
+   * 如果我们在灵魂鸣唱期间注册到命中，但施放是在合理的旅行时间内并且是同一目标，我们假设这是硬读条造成的命中（而不是灵魂鸣唱）。
+   * 找到匹配的命中时，将清除施放条目。
    */
   lastTravelingSpellCast: Array<CastEvent | undefined> = [];
 
-  /** True iff the current Feral Frenzy damage is from Convoke */
+  /** 当前野性狂怒伤害是否来自灵魂鸣唱 */
   feralFrenzyIsConvoke: boolean = false;
-  /** True iff the current Starfall damage is from Convoke */
+  /** 当前星辰坠落伤害是否来自灵魂鸣唱 */
   starfallIsConvoke: boolean = false;
 
   constructor(options: Options) {
     super(options);
     this.active = this.selectedCombatant.hasTalent(TALENTS_DRUID.CONVOKE_THE_SPIRITS_TALENT);
 
-    // used to be different per spec, leaving var just in case it goes back to that
+    // 过去不同专精有不同的施法数量，这里保留变量以防将来再次改变
     this.spellsPerCast = SPELLS_CAST;
 
-    // watch for convokes
+    // 监视灵魂鸣唱
     this.addEventListener(
       Events.applybuff.by(SELECTED_PLAYER).spell(SPELLS.CONVOKE_SPIRITS),
       this.onConvoke,
     );
 
-    // watch for spell 'hits'
+    // 监视法术“命中”
     this.addEventListener(
       Events.applybuff.by(SELECTED_PLAYER).spell(CONVOKE_BUFF_SPELLS),
       this.onHit,
@@ -186,15 +182,13 @@ class ConvokeSpirits extends Analyzer {
       this.onHit,
     );
 
-    // tally direct damage
+    // 统计直接伤害
     this.addEventListener(
       Events.damage.by(SELECTED_PLAYER).spell(CONVOKE_DIRECT_DAMAGE_SPELLS),
       this.onDirectDamage,
     );
 
-    // special cases for damage tallying - Starfall and Feral Frenzy which are 'non refreshable' DoTs
-    // (Starfall  is refreshable for Balance but costs a lot of resource so we'll count from Convoke
-    // application until next)
+    // 特殊情况的伤害统计 - 星辰坠落和野性狂怒，它们是“不可刷新”的DoT
     this.addEventListener(
       Events.damage.by(SELECTED_PLAYER).spell(SPELLS.FERAL_FRENZY_DEBUFF),
       this.onFeralFrenzyDamage,
@@ -220,7 +214,7 @@ class ConvokeSpirits extends Analyzer {
       this.onGainStarfall,
     );
 
-    // watch for travel time casts
+    // 监视有旅行时间的施放
     this.addEventListener(
       Events.cast.by(SELECTED_PLAYER).spell(SPELLS_WITH_TRAVEL_TIME),
       this.onTravelTimeCast,
@@ -245,10 +239,10 @@ class ConvokeSpirits extends Analyzer {
     const wasProbablyHardcast = isTravelTime && this.wasProbablyHardcast(event);
 
     if (isNewHit && isConvoking(this.selectedCombatant) && !wasProbablyHardcast) {
-      // spell hit during convoke and was due to convoke
+      // 法术在灵魂鸣唱期间命中且是由于灵魂鸣唱
       this.registerConvokedSpell(spellId);
     } else if (isTravelTime && !wasProbablyHardcast && this.isWithinTravelFromConvoke()) {
-      // spell hit soon after convoke but was due to convoke
+      // 法术在灵魂鸣唱后不久命中但仍是由灵魂鸣唱引发的
       this.registerConvokedSpell(spellId);
     }
 
@@ -268,10 +262,10 @@ class ConvokeSpirits extends Analyzer {
     const wasProbablyHardcast = isTravelTime && this.wasProbablyHardcast(event);
 
     if (isConvoking(this.selectedCombatant) && !wasProbablyHardcast) {
-      // spell hit during convoke and was due to convoke
+      // 法术在灵魂鸣唱期间命中且是由于灵魂鸣唱
       this._addDamage(event);
     } else if (isTravelTime && !wasProbablyHardcast && this.isWithinTravelFromConvoke()) {
-      // spell hit soon after convoke but was due to convoke
+      // 法术在灵魂鸣唱后不久命中但仍是由灵魂鸣唱引发的
       this._addDamage(event);
     }
   }
@@ -296,27 +290,27 @@ class ConvokeSpirits extends Analyzer {
     }
   }
 
-  /** Tallies this damage event as being from Convoke */
+  /** 统计此伤害事件来自灵魂鸣唱 */
   _addDamage(event: DamageEvent) {
     const currentConvoke = this.convokeTracker[this.cast];
     currentConvoke.damage += event.amount + (event.absorbed || 0);
     DEBUG &&
       console.log(
-        `Convoke #${this.cast} - ${event.ability.name} did ${
+        `灵魂鸣唱 #${this.cast} - ${event.ability.name} 造成了 ${
           event.amount + (event.absorbed || 0)
         } @ ${this.owner.formatTimestamp(event.timestamp)}`,
       );
   }
 
   /**
-   * The total attributable damage due to convoke
+   * 总的灵魂鸣唱造成的伤害
    */
   get totalDamage() {
     return this.convokeTracker.reduce((att, cast) => att + cast.damage, 0);
   }
 
   /**
-   * Tallies the given spellId as a convoked cast during the current convoke.
+   * 将给定的法术ID记录为当前灵魂鸣唱期间的施放。
    */
   registerConvokedSpell(spellId: number): void {
     const currentConvoke = this.convokeTracker[this.cast];
@@ -327,15 +321,14 @@ class ConvokeSpirits extends Analyzer {
   }
 
   /**
-   * True iff we're soon enough after Convoking that a convoked spell with travel time
-   * could still plausibly be in the air.
+   * 判断是否距离灵魂鸣唱结束足够近，以至于带有旅行时间的灵魂鸣唱法术仍然在空中。
    */
   isWithinTravelFromConvoke(): boolean {
     return this.selectedCombatant.hasBuff(SPELLS.CONVOKE_SPIRITS.id, null, TRAVEL_BUFFER_MS);
   }
 
   /**
-   * True iff a hit with the given traveling spellId could plausibly have come from a hardcast
+   * 判断带有旅行时间的法术ID的命中是否可能来自硬读条
    */
   wasProbablyHardcast(event: AbilityEvent<any> & TargettedEvent<any>): boolean {
     const lastCast: CastEvent | undefined = this.lastTravelingSpellCast[event.ability.guid];
@@ -347,9 +340,9 @@ class ConvokeSpirits extends Analyzer {
   }
 
   /**
-   * Checks if the hit from the given spellId is 'new', and updates trackers appropriately.
-   * A hit from a single target spell is always new.
-   * A hit from an AoE spell is only new if there wasn't another very recent hit.
+   * 检查给定法术ID的命中是否“新”，并相应更新跟踪器。
+   * 单目标法术的命中始终是新的。
+   * AOE法术的命中只有在最近没有其他命中的情况下才是新的。
    */
   isNewHit(spellId: number): boolean {
     const isAoe: boolean = SPELL_IDS_WITH_AOE.includes(spellId);
@@ -357,9 +350,9 @@ class ConvokeSpirits extends Analyzer {
       return true;
     }
     if (this.owner.currentTimestamp <= this.mostRecentAoeTimestamp + AOE_BUFFER_MS) {
-      return false; // still within the same AoE
+      return false; // 仍在同一个AOE中
     } else {
-      // new AoE
+      // 新的AOE
       this.mostRecentAoeTimestamp = this.owner.currentTimestamp;
       return true;
     }
@@ -387,18 +380,18 @@ class ConvokeSpirits extends Analyzer {
     );
   }
 
-  /** The dropdown table in the base form of this statistic - shows damage done */
+  /** 统计的基础形式下的下拉表 - 显示造成的伤害 */
   get baseTable(): React.ReactNode {
     return (
       <>
         <table className="table table-condensed">
           <thead>
             <tr>
-              <th>Cast #</th>
-              <th>Time</th>
-              <th>Form</th>
-              <th>Damage</th>
-              <th>Spells In Cast</th>
+              <th>施放次数</th>
+              <th>时间</th>
+              <th>形态</th>
+              <th>伤害</th>
+              <th>施放的法术</th>
             </tr>
           </thead>
           <tbody>
@@ -423,24 +416,22 @@ class ConvokeSpirits extends Analyzer {
     );
   }
 
-  /** The tooltip in the base form of this statistic */
+  /** 统计的基础形式下的工具提示 */
   get baseTooltip(): React.ReactNode {
     return (
       <>
-        Abilities cast by Convoke do not create cast events; this listing is created by tracking
-        related events during the channel. Occasionally a Convoke will cast an ability that hits
-        nothing (like Thrash when only immune targets are in range). In these cases we won't be able
-        to track it and so the number of spells listed may not add up to {this.spellsPerCast}.
+        灵魂鸣唱施放的技能不会创建施放事件；此列表是通过在引导期间跟踪相关事件创建的。
+        偶尔灵魂鸣唱会施放命中不了任何东西的技能（如周围只有免疫目标时的痛击）。
+        在这些情况下，我们无法跟踪它，因此列出的法术数量可能不会加起来达到{this.spellsPerCast}。
       </>
     );
   }
 }
 
 /**
- * True iff the player is currently Convoking the Spirits.
- * Includes a small buffer after the end because occasionally the last convoked spell occurs
- * slightly after the end.
- * Here as a separate function to avoid dependency issues.
+ * 判断玩家当前是否在施放灵魂鸣唱。
+ * 包括灵魂鸣唱结束后的短暂缓冲时间，因为最后一个灵魂鸣唱的法术有时会在结束后略微延迟施放。
+ * 作为一个单独的函数，避免依赖问题。
  */
 export function isConvoking(c: Combatant): boolean {
   return c.hasBuff(SPELLS.CONVOKE_SPIRITS.id, null, AFTER_CHANNEL_BUFFER_MS);
@@ -448,13 +439,13 @@ export function isConvoking(c: Combatant): boolean {
 
 export default ConvokeSpirits;
 
-/** A tracker for things that happen in a single Convoke cast */
+/** 用于跟踪单次灵魂鸣唱施放的内容 */
 interface ConvokeCast {
   timestamp: number;
-  /** A mapping from spellId to the number of times that spell was cast during the Convoke */
+  /** 从法术ID到该法术在灵魂鸣唱期间施放次数的映射 */
   spellIdToCasts: number[];
-  /** The form the Druid was in during the cast */
+  /** 德鲁伊在施放期间的形态 */
   form: DruidForm;
-  /** The damage attributable to this convoke cast */
+  /** 此次灵魂鸣唱施放的伤害 */
   damage: number;
 }

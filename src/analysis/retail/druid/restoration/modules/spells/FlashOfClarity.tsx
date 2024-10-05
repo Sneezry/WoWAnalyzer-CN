@@ -19,10 +19,10 @@ import { buffedByClearcast } from 'analysis/retail/druid/restoration/normalizers
 const REGROWTH_BOOST = 0.3;
 
 /**
- * **Flash of Clarity**
- * Spec Talent Tier 3
+ * **清晰闪现**
+ * 专精天赋 第三层
  *
- * Clearcast Regrowths heal for an additional 30%.
+ * 触发清晰预兆的愈合额外治疗30%。
  */
 class FlashOfClarity extends Analyzer {
   static dependencies = {
@@ -30,7 +30,7 @@ class FlashOfClarity extends Analyzer {
   };
   protected hotTracker!: HotTrackerRestoDruid;
 
-  hotBoostAttribution: Attribution = HotTrackerRestoDruid.getNewAttribution('FoC Regrowth');
+  hotBoostAttribution: Attribution = HotTrackerRestoDruid.getNewAttribution('清晰闪现 愈合');
   directBoostHealing: number = 0;
 
   constructor(options: Options) {
@@ -51,7 +51,7 @@ class FlashOfClarity extends Analyzer {
   onRegrowthApply(event: ApplyBuffEvent | RefreshBuffEvent) {
     const hardcast = getHardcast(event);
     if (!hardcast || !buffedByClearcast(hardcast)) {
-      return; // only apply boost to casts that actually buffed by clearcast
+      return; // 只对受到清晰预兆增益的施法应用提升
     }
 
     this.hotTracker.addBoostFromApply(this.hotBoostAttribution, REGROWTH_BOOST, event);
@@ -68,7 +68,7 @@ class FlashOfClarity extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(3)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(3)} // 基于天赋层数的编号
         size="flexible"
         category={STATISTIC_CATEGORY.TALENTS}
       >

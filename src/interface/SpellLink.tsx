@@ -38,7 +38,7 @@ const SpellLink = React.forwardRef<HTMLAnchorElement, Props>(
             <SpellIcon spell={spellData} noLink style={iconStyle} alt="" />{' '}
           </>
         )}
-        {children || (spellInfo?.name ? spellInfo.name : `Unknown spell: ${spellId}`)}
+        {children || (spellInfo?.name ? spellInfo.name : `未知技能：${spellId}`)}
       </a>
     );
   },

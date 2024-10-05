@@ -164,7 +164,7 @@ class PotionChecker extends Analyzer {
   }
 
   get suggestionMessage() {
-    return 'Since you are able to use a combat potion every 5 minutes, you should ensure that you are getting the maximum number of potions in each encounter.';
+    return '由于你每 5 分钟可以使用一次战斗药水，请确保在每次战斗中最大限度地使用药水。';
   }
 
   potionAdjuster(spec: Spec) {

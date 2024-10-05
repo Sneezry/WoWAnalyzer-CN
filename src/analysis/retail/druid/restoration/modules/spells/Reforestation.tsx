@@ -12,10 +12,10 @@ import TreeOfLife from 'analysis/retail/druid/restoration/modules/spells/TreeOfL
 import { TALENTS_DRUID } from 'common/TALENTS';
 
 /**
- * **Reforestation**
- * Spec Talent Tier 10
+ * **重植术**
+ * 专精天赋 第10层
  *
- * Every 3 casts of Swiftmend grants you Incarnation: Tree of Life for 10 sec.
+ * 每施放3次迅捷治愈，会使你获得化身：生命之树，持续10秒。
  */
 class Reforestation extends Analyzer {
   static dependencies = {
@@ -32,17 +32,17 @@ class Reforestation extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(10)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(10)} // 基于天赋层数的数字
         category={STATISTIC_CATEGORY.TALENTS}
         size="flexible"
         tooltip={
           <>
-            This is the healing caused by the Tree of Life procs from{' '}
-            <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} />. The healing amount is the sum
-            of all benefits from gaining Tree of Life form, which are listed below
+            这是由
+            <SpellLink spell={TALENTS_DRUID.REFORESTATION_TALENT} />
+            触发的生命之树造成的治疗量。治疗量为获得生命之树形态带来的所有增益之和，具体如下：
             <ul>
               <li>
-                Overall Increased Healing:{' '}
+                整体治疗量提升:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(
@@ -53,7 +53,7 @@ class Reforestation extends Analyzer {
                 </strong>
               </li>
               <li>
-                Rejuv Increased Healing:{' '}
+                回春术治疗量提升:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(
@@ -64,7 +64,7 @@ class Reforestation extends Analyzer {
                 </strong>
               </li>
               <li>
-                Increased Wild Growths:{' '}
+                野性成长额外治疗:{' '}
                 <strong>
                   {formatPercentage(
                     this.owner.getPercentageOfTotalHealingDone(

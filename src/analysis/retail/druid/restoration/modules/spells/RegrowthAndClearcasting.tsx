@@ -21,40 +21,40 @@ import { ABUNDANCE_MANA_REDUCTION } from 'analysis/retail/druid/restoration/modu
 import { QualitativePerformance } from 'parser/ui/QualitativePerformance';
 import CastSummaryAndBreakdown from 'interface/guide/components/CastSummaryAndBreakdown';
 
-/** Health percent below which we consider a heal to be 'triage' */
+/** 低于此血量百分比时我们认为需要‘紧急治疗’ */
 const TRIAGE_THRESHOLD = 0.5;
-/** Max time from cast to heal event to consider the events linked */
+/** 施法事件与治疗事件之间的最大时间（毫秒）来认为它们是关联的 */
 const MS_BUFFER = 100;
-/** Min stacks required to consider a regrowth efficient */
+/** 考虑愈合术高效所需的最低充裕效果层数 */
 const ABUNDANCE_EXCEPTION_STACKS = 4;
 
 /**
- * Tracks stats relating to Regrowth and the Clearcasting proc
+ * 追踪与愈合术及节能施法相关的统计数据
  */
 class RegrowthAndClearcasting extends Analyzer {
-  /** total clearcasting procs */
+  /** 总节能施法次数 */
   totalClearcasts = 0;
-  /** overwritten clearcasting procs */
+  /** 被覆盖的节能施法次数 */
   overwrittenClearcasts = 0;
-  /** set to 1 iff there is a clearcast active at fight end */
+  /** 如果战斗结束时有活跃的节能施法，设为1 */
   endingClearcasts = 0;
 
-  /** total regrowth hardcasts */
+  /** 总愈合术硬读条次数 */
   totalRegrowths = 0;
-  /** regrowth hardcasts made free by innervate */
+  /** 因激活免费施放的愈合术次数 */
   innervateRegrowths = 0;
-  /** regrowth hardcasts made free by nature's swiftness */
+  /** 因自然迅捷免费施放的愈合术次数 */
   nsRegrowths = 0;
-  /** regrowth hardcasts made free by clearcasting */
+  /** 因节能施法免费施放的愈合术次数 */
   ccRegrowths = 0;
-  /** regrowth hardcasts that were cheap enough to be efficient due to abundance */
+  /** 因充裕效果降低消耗使得愈合术足够高效的次数 */
   abundanceRegrowths = 0;
-  /** full price regrowth hardcasts that were on low health targets */
+  /** 在低血量目标上以全消耗施放的愈合术次数 */
   triageRegrowths = 0;
-  /** full price regrowth hardcasts on healthy targets */
+  /** 在高血量目标上以全消耗施放的愈合术次数 */
   badRegrowths = 0;
 
-  /** Box row entry for each Regrowth cast */
+  /** 每次愈合术施放的条目 */
   castEntries: BoxRowEntry[] = [];
 
   hasAbundance: boolean;
@@ -95,9 +95,9 @@ class RegrowthAndClearcasting extends Analyzer {
       this.hasTranquilMind &&
       this.selectedCombatant.getBuffStacks(SPELLS.CLEARCASTING_BUFF.id) === 1
     ) {
-      // With Tranquil Mind talent, a refreshbuff occurs when player USES a clearcast at 2 stacks -
-      // we don't want to count that as an overwrite or a clearcast gained.
-      // The refresh happens after the 2nd stack is lost, so we can tell this happened by stack count
+      // 若玩家有心境宁静天赋，刷新buff时是因为玩家在2层时使用了节能施法——
+      // 我们不想将此算作被覆盖或获得的节能施法。
+      // 刷新发生在第二层消失后，因此我们可以通过层数来判断。
       return;
     }
 
@@ -118,15 +118,15 @@ class RegrowthAndClearcasting extends Analyzer {
     let wasGood = true;
     if (this.selectedCombatant.hasBuff(SPELLS.INNERVATE.id)) {
       this.innervateRegrowths += 1;
-      castNote = 'Free due to Innervate';
+      castNote = '因激活免费施放';
     } else if (
       this.selectedCombatant.hasBuff(SPELLS.NATURES_SWIFTNESS.id, event.timestamp, MS_BUFFER)
     ) {
       this.nsRegrowths += 1;
-      castNote = "Free due to Nature's Swiftness";
+      castNote = '因自然迅捷免费施放';
     } else if (buffedByClearcast(event)) {
       this.ccRegrowths += 1;
-      castNote = 'Free due to Clearcasting';
+      castNote = '因节能施法免费施放';
     } else if (
       this.selectedCombatant.getBuffStacks(SPELLS.ABUNDANCE_BUFF.id) >= ABUNDANCE_EXCEPTION_STACKS
     ) {
@@ -134,30 +134,30 @@ class RegrowthAndClearcasting extends Analyzer {
       const abundanceStacks = this.selectedCombatant.getBuffStacks(SPELLS.ABUNDANCE_BUFF.id);
       castNote =
         ABUNDANCE_MANA_REDUCTION * abundanceStacks >= 1
-          ? `Free due to ${abundanceStacks} stacks of Abundance`
-          : `Cheap due to ${abundanceStacks} stacks of Abundance`;
+          ? `因${abundanceStacks}层充裕效果免费施放`
+          : `因${abundanceStacks}层充裕效果降低消耗`;
     } else {
-      // use the heal to determine if this Regrowth was triage (saving low health player)
+      // 使用治疗效果判断愈合术是否是紧急治疗（挽救低血量玩家）
       if (targetHealthPercent !== undefined && targetHealthPercent < TRIAGE_THRESHOLD) {
         this.triageRegrowths += 1;
-        castNote = 'Cast full price on a low health target';
+        castNote = '对低血量目标以全消耗施放';
       } else {
         this.badRegrowths += 1;
         wasGood = false;
-        castNote = 'Cast full price on a high health target';
+        castNote = '对高血量目标以全消耗施放';
       }
     }
 
     const targetHealthString =
-      targetHealthPercent !== undefined ? `${formatPercentage(targetHealthPercent, 0)}` : 'unknown';
+      targetHealthPercent !== undefined ? `${formatPercentage(targetHealthPercent, 0)}` : '未知';
     this.castEntries.push({
       value: wasGood ? QualitativePerformance.Good : QualitativePerformance.Fail,
       tooltip: (
         <>
           @ <strong>{this.owner.formatTimestamp(event.timestamp)}</strong> - {castNote}
           <br />
-          targetting <strong>{this.owner.getTargetName(event)}</strong> w/{' '}
-          <strong>{targetHealthString}%</strong> health
+          目标 <strong>{this.owner.getTargetName(event)}</strong> 血量为{' '}
+          <strong>{targetHealthString}%</strong>
         </>
       ),
     });
@@ -186,10 +186,10 @@ class RegrowthAndClearcasting extends Analyzer {
     return this.totalClearcasts - this.usedClearcasts;
   }
 
-  /** Percentage of gained clearcasts that were used */
+  /** 使用的节能施法占获得节能施法的百分比 */
   get clearcastUtilPercent() {
-    // return 100% when no clearcasts to avoid suggestion
-    // clearcast still active at end shouldn't be counted in util, hence the subtraction from total
+    // 当没有节能施法时返回100%以避免建议
+    // 战斗结束时仍然活跃的节能施法不应计入使用率，因此从总数中减去
     return this.totalClearcasts === 0
       ? 1
       : this.usedClearcasts / (this.totalClearcasts - this.endingClearcasts);
@@ -199,7 +199,7 @@ class RegrowthAndClearcasting extends Analyzer {
     return this.innervateRegrowths + this.ccRegrowths + this.nsRegrowths;
   }
 
-  /** Guide subsection describing the proper usage of Regrowth */
+  /** 指导小节描述愈合术的正确使用 */
   get guideSubsection(): JSX.Element {
     const hasAbundance = this.selectedCombatant.hasTalent(TALENTS_DRUID.ABUNDANCE_TALENT);
     const explanation = (
@@ -207,15 +207,15 @@ class RegrowthAndClearcasting extends Analyzer {
         <b>
           <SpellLink spell={SPELLS.REGROWTH} />
         </b>{' '}
-        is for spot healing. The HoT is very weak - Regrowth is only efficient when its direct
-        portion is effective. Exceptions are when Regrowth is free due to{' '}
-        <SpellLink spell={SPELLS.CLEARCASTING_BUFF} /> /{' '}
+        用于单点治疗。愈合术的HoT部分非常弱——愈合术只有在其直接治疗部分有效时才是高效的。
+        例外情况是当愈合术因为 <SpellLink spell={SPELLS.CLEARCASTING_BUFF} /> /{' '}
         <SpellLink spell={SPELLS.NATURES_SWIFTNESS} />{' '}
         {hasAbundance && (
           <>
-            or cheap due to <SpellLink spell={TALENTS_DRUID.ABUNDANCE_TALENT} />
+            或因 <SpellLink spell={TALENTS_DRUID.ABUNDANCE_TALENT} /> 降低法力消耗时
           </>
         )}
+        免费施放。
       </p>
     );
 
@@ -225,7 +225,7 @@ class RegrowthAndClearcasting extends Analyzer {
           <CastSummaryAndBreakdown
             spell={SPELLS.REGROWTH}
             castEntries={this.castEntries}
-            badExtraExplanation={<>at full mana cost on a high health target</>}
+            badExtraExplanation={<>在满法力消耗的情况下对高血量目标施放</>}
           />
         </div>
       </div>
@@ -238,64 +238,59 @@ class RegrowthAndClearcasting extends Analyzer {
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.CORE(20)} // chosen for fixed ordering of general stats
+        position={STATISTIC_ORDER.CORE(20)} // 为了固定的一般统计顺序
         tooltip={
           <>
-            <SpellLink spell={SPELLS.REGROWTH} /> is mana inefficient relative to{' '}
-            <SpellLink spell={SPELLS.REJUVENATION} /> and should only be cast when free due to{' '}
-            <SpellLink spell={SPELLS.INNERVATE} />, <SpellLink spell={SPELLS.NATURES_SWIFTNESS} />{' '}
-            or <SpellLink spell={SPELLS.CLEARCASTING_BUFF} />,{' '}
-            {this.hasAbundance && (
-              <>
-                cheap due to {ABUNDANCE_EXCEPTION_STACKS}+{' '}
-                <SpellLink spell={TALENTS_DRUID.ABUNDANCE_TALENT} /> stacks,
-              </>
-            )}{' '}
-            or to save a low health target.
+            <SpellLink spell={SPELLS.REGROWTH} /> 相对于 <SpellLink spell={SPELLS.REJUVENATION} />{' '}
+            来说法力效率较低， 只有在由于 <SpellLink spell={SPELLS.INNERVATE} />、
+            <SpellLink spell={SPELLS.NATURES_SWIFTNESS} /> 或{' '}
+            <SpellLink spell={SPELLS.CLEARCASTING_BUFF} />{' '}
+            {this.hasAbundance && <>或因充裕效果堆叠超过{ABUNDANCE_EXCEPTION_STACKS}层时</>}{' '}
+            免费施放时，或者为了挽救低血量目标时才应该施放。
             <br />
             <br />
             <strong>
-              You hardcast {this.totalRegrowths} <SpellLink spell={SPELLS.REGROWTH} />
+              你硬读条施放了 {this.totalRegrowths} 次 <SpellLink spell={SPELLS.REGROWTH} />
             </strong>
             <ul>
               <li>
                 <SpellIcon spell={SPELLS.INNERVATE} />{' '}
                 <SpellIcon spell={SPELLS.CLEARCASTING_BUFF} />{' '}
-                <SpellIcon spell={SPELLS.NATURES_SWIFTNESS} /> Free Casts:{' '}
+                <SpellIcon spell={SPELLS.NATURES_SWIFTNESS} /> 免费施放次数:{' '}
                 <strong>{this.freeRegrowths}</strong>
               </li>
               {this.hasAbundance && (
                 <li>
-                  <SpellIcon spell={SPELLS.ABUNDANCE_BUFF} /> Cheap Casts:{' '}
+                  <SpellIcon spell={SPELLS.ABUNDANCE_BUFF} /> 降低消耗施放次数:{' '}
                   <strong>{this.abundanceRegrowths}</strong>
                 </li>
               )}
               <li>
-                <HealthIcon /> Full Price Triage ({'<'}
-                {formatPercentage(TRIAGE_THRESHOLD, 0)}% HP) Casts:{' '}
-                <strong>{this.triageRegrowths}</strong>
+                <HealthIcon /> 全消耗紧急治疗（血量小于 {formatPercentage(TRIAGE_THRESHOLD, 0)}
+                %）次数: <strong>{this.triageRegrowths}</strong>
               </li>
               <li>
-                <CrossIcon /> Bad Casts: <strong>{this.badRegrowths}</strong>
+                <CrossIcon /> 不佳施放次数: <strong>{this.badRegrowths}</strong>
               </li>
             </ul>
             <br />
             <strong>
-              You gained {this.totalClearcasts} <SpellLink spell={SPELLS.CLEARCASTING_BUFF} />
+              你获得了 {this.totalClearcasts} 次 <SpellLink spell={SPELLS.CLEARCASTING_BUFF} />
             </strong>
             <ul>
               <li>
-                <SpellIcon spell={SPELLS.REGROWTH} /> Used: <strong>{this.usedClearcasts}</strong>
+                <SpellIcon spell={SPELLS.REGROWTH} /> 使用次数:{' '}
+                <strong>{this.usedClearcasts}</strong>
               </li>
               <li>
-                <CrossIcon /> Overwritten: <strong>{this.overwrittenClearcasts}</strong>
+                <CrossIcon /> 被覆盖次数: <strong>{this.overwrittenClearcasts}</strong>
               </li>
               <li>
-                <UptimeIcon /> Expired: <strong>{this.expiredClearcasts}</strong>
+                <UptimeIcon /> 过期次数: <strong>{this.expiredClearcasts}</strong>
               </li>
               {this.endingClearcasts > 0 && (
                 <li>
-                  Still active at fight end: <strong>{this.endingClearcasts}</strong>
+                  战斗结束时仍然活跃: <strong>{this.endingClearcasts}</strong>
                 </li>
               )}
             </ul>
@@ -306,11 +301,11 @@ class RegrowthAndClearcasting extends Analyzer {
           <>
             {this.badRegrowths === 0 ? <CheckmarkIcon /> : <CrossIcon />}
             {'  '}
-            {this.badRegrowths} <small>bad casts</small>
+            {this.badRegrowths} <small>不佳施放</small>
             <br />
             <SpellIcon spell={SPELLS.CLEARCASTING_BUFF} />
             {'  '}
-            {formatPercentage(this.clearcastUtilPercent, 1)}% <small>util</small>
+            {formatPercentage(this.clearcastUtilPercent, 1)}% <small>利用率</small>
           </>
         </BoringSpellValueText>
       </Statistic>

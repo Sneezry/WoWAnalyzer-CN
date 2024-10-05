@@ -18,8 +18,8 @@ class AverageHots extends Analyzer {
     const avgTotalHots = this.mastery.getAverageTotalMasteryStacks().toFixed(2);
     const avgDruidHots = this.mastery.getAverageDruidSpellMasteryStacks().toFixed(2);
 
-    console.log(`Total Healing: ${this.mastery.totalNoMasteryHealing}`);
-    console.log(`Total Mastery Effected Healing: ${this.mastery.druidSpellNoMasteryHealing}`);
+    console.log(`总治疗量: ${this.mastery.totalNoMasteryHealing}`);
+    console.log(`受精通影响的总治疗量: ${this.mastery.druidSpellNoMasteryHealing}`);
 
     return (
       <Statistic
@@ -27,20 +27,13 @@ class AverageHots extends Analyzer {
         size="flexible"
         tooltip={
           <>
+            <p>这是你的治疗技能受益于精通效果的平均层数，按治疗量加权。</p>
             <p>
-              This is the average effective number of mastery stacks your heals benefitted from,
-              weighted by healing done.
+              这个数值不应被视为表现指标，而是天赋选择和治疗方式的体现。天赋如“栽培”或“春暖花开”会增加此数值，而在大型团队中施法通常会减少此数值。
             </p>
             <p>
-              This number should not be read as a performance metric but rather a function of talent
-              choices and healing style. Talents that spread extra HoTs like Cultivation or Spring
-              Blossoms will increase this number, while playing in larger groups will tend to reduce
-              this number.
-            </p>
-            <p>
-              This number includes all your healing, even heals that don't benefit from mastery
-              (like Trinkets, potions, Renewal, etc..) Your average mastery stacks counting only
-              heals that benefit from mastery is <strong>{avgDruidHots}</strong>.
+              此数值包括了你的所有治疗效果，甚至那些不受精通影响的治疗（如饰品、药水、萌芽复苏等）。仅计算受精通影响的治疗时，你的精通平均层数为{' '}
+              <strong>{avgDruidHots}</strong>。
             </p>
           </>
         }
@@ -48,7 +41,7 @@ class AverageHots extends Analyzer {
         <BoringValue
           label={
             <>
-              <SpellIcon spell={SPELLS.MASTERY_HARMONY} /> Average Mastery stacks
+              <SpellIcon spell={SPELLS.MASTERY_HARMONY} /> 平均精通层数
             </>
           }
         >

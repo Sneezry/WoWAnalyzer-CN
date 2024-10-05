@@ -26,7 +26,7 @@ const ARCANE_SPELLS = [
   SPELLS.FULL_MOON,
   TALENTS_DRUID.FURY_OF_ELUNE_TALENT,
   TALENTS_DRUID.LUNAR_BEAM_TALENT,
-  // Lunar Calling 'Arcane Thrash' handled separately in constructor
+  // 月之召唤的“奥术横扫”在构造函数中单独处理
 ];
 
 const MOON_REDUCE_MS = 1_000;
@@ -34,27 +34,27 @@ const FOE_REDUCE_MS = 2_000;
 const LUNAR_BEAM_REDUCE_MS = 3_000;
 
 /**
- * **Lunation**
- * Hero Talent
+ * **月之能量**
+ * 英雄天赋
  *
- *  Balance
- * Your Arcane abilities reduce the cooldown of Fury of Elune by 2.0 sec and the cooldown of New Moon, Half Moon, and Full Moon by 1.0 sec.
+ *  平衡
+ * 你的奥术技能减少艾露恩之怒的冷却时间2秒，并减少新月、半月和满月的冷却时间1秒。
  *
- * Guardian
- * Your Arcane abilities reduce the cooldown of Lunar Beam by 3.0 sec.
+ *  守护
+ * 你的奥术技能减少月光束的冷却时间3秒。
  */
 export default class Lunation extends Analyzer.withDependencies({ spellUsable: SpellUsable }) {
-  /** The spell whose CD will be reduced */
+  /** 被减少冷却的法术 */
   spell: Spell | undefined = undefined;
-  /** The amount to reduce the spell's CD by when an Arcane spell is cast */
+  /** 每次施放奥术技能时减少法术冷却的时间 */
   cdrMsPerCast: number = 0;
-  /** CDR applied so far to the currently cooling down charge */
+  /** 当前冷却的充能应用的冷却缩减 */
   pendingCdrMs: number = 0;
-  /** Total CDR applied to charges that have finished cooling down */
+  /** 已经完成冷却的充能应用的总冷却缩减 */
   totalCdrMs: number = 0;
-  /** Total 'raw' CDR, including reduction that couldn't apply because spell not on CD */
+  /** 总的“原始”冷却缩减，包括因法术未在冷却时无法应用的缩减 */
   totalRawCdr: number = 0;
-  /** Total charges restored for the tracked spell */
+  /** 被追踪法术恢复的总充能次数 */
   finishedCdCount: number = 0;
 
   testArcaneCastCount: number = 0;
@@ -79,7 +79,7 @@ export default class Lunation extends Analyzer.withDependencies({ spellUsable: S
       this.selectedCombatant.spec === SPECS.GUARDIAN_DRUID &&
       this.selectedCombatant.hasTalent(TALENTS_DRUID.LUNAR_CALLING_TALENT)
     ) {
-      // With this talent, Thrash becomes an arcane spell but cast ID doesn't change
+      // 在拥有此天赋的情况下，横扫会变成奥术法术，但施法ID不变
       this.addEventListener(
         Events.cast.by(SELECTED_PLAYER).spell(SPELLS.THRASH_BEAR),
         this.onArcaneCast,
@@ -116,7 +116,7 @@ export default class Lunation extends Analyzer.withDependencies({ spellUsable: S
     if (this.finishedCdCount === 0) {
       return 'N/A';
     } else {
-      return (this.totalCdrMs / this.finishedCdCount / 1000).toFixed(1) + 's';
+      return (this.totalCdrMs / this.finishedCdCount / 1000).toFixed(1) + '秒';
     }
   }
 
@@ -131,21 +131,22 @@ export default class Lunation extends Analyzer.withDependencies({ spellUsable: S
         tooltip={
           <>
             <p>
-              This is the cooldown reduction per <SpellLink spell={this.spell} /> cast, averaged
-              over the entire encounter. The total effective CDR over the entire encounter was{' '}
-              <strong>{(this.totalCdrMs / 1000).toFixed(0)}s</strong>.
+              这是<strong>{this.spell ? <SpellLink spell={this.spell} /> : null}</strong>
+              的每次施放的平均冷却缩减，计算了整个战斗中的表现。 在整个战斗中总共获得了{' '}
+              <strong>{(this.totalCdrMs / 1000).toFixed(0)}秒</strong>的有效冷却缩减。
             </p>
             <p>
-              The total 'raw' CDR over the entire encounter (including Arcane spells cast while{' '}
-              <SpellLink spell={this.spell} /> was not on CD) was{' '}
-              <strong>{(this.totalRawCdr / 1000).toFixed(0)}s</strong>.
+              整个战斗中的总“原始”冷却缩减（包括在
+              <strong>{this.spell ? <SpellLink spell={this.spell} /> : null}</strong>
+              不在冷却时施放奥术法术时的缩减）为{' '}
+              <strong>{(this.totalRawCdr / 1000).toFixed(0)}秒</strong>。
             </p>
           </>
         }
       >
         <TalentSpellText talent={TALENTS_DRUID.LUNATION_TALENT}>
           <>
-            <SpellIcon spell={this.spell} /> {this.cdrPerCast} <small>avg CDR per cast</small>
+            <SpellIcon spell={this.spell} /> {this.cdrPerCast} <small>平均每次施放的冷却缩减</small>
           </>
         </TalentSpellText>
       </Statistic>

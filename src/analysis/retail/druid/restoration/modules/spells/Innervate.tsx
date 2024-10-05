@@ -18,7 +18,7 @@ import { QualitativePerformance } from 'parser/ui/QualitativePerformance';
 import { explanationAndDataSubsection } from 'interface/guide/components/ExplanationRow';
 import { abilityToSpell } from 'common/abilityToSpell';
 
-// TODO double check this is a reasonable number
+// TODO 重新检查这个数值是否合理
 const INNERVATE_MANA_REQUIRED = 7000;
 
 class Innervate extends Analyzer {
@@ -38,25 +38,25 @@ class Innervate extends Analyzer {
   }
 
   onCast(event: CastEvent) {
-    // only interested in casts that cost mana
+    // 只关心消耗法力值的施法
     const manaEvent = event.rawResourceCost;
     if (manaEvent === undefined) {
       return;
     }
 
-    // Innervate cast already handled in `onInnervate`
+    // 已经在 `onInnervate` 中处理了激活的施放
     if (event.ability.guid === SPELLS.INNERVATE.id) {
       return;
     }
 
-    // If it's during Innervate, tally the casts that happened
+    // 如果是在激活期间施放的技能，记录施放的技能
     if (this.selectedCombatant.hasBuff(SPELLS.INNERVATE.id)) {
       if (!CASTS_THAT_ARENT_CASTS.includes(event.ability.guid) && this.castTrackers.length > 0) {
-        // we want to at least keep track of all abilites during the innervate, not just ones that cost mana
+        // 我们至少需要跟踪所有在激活期间施放的技能，而不仅仅是消耗法力值的技能
         this.castTrackers[this.castTrackers.length - 1].casts.push(event);
       }
 
-      //checks if the spell costs anything (we don't just use cost since some spells don't play nice)
+      // 检查技能是否消耗了法力值
       if (Object.keys(manaEvent).length !== 0) {
         const manaSavedFromThisCast = manaEvent[0];
         this.manaSaved += manaSavedFromThisCast;
@@ -97,18 +97,16 @@ class Innervate extends Analyzer {
         <strong>
           <SpellLink spell={SPELLS.INNERVATE} />
         </strong>{' '}
-        is best used during your ramp, or any time when you expect to spam cast. Typically it should
-        be used as soon as it's available. Remember to fit a Wild Growth inside the Innervate, as
-        it's one of your most expensive spells.
+        最好在你需要大量施法的时候使用，或者在准备使用多个高耗法术时使用。通常应在冷却好后立即使用。记得在激活期间施放一个野性成长，因为这是你最昂贵的法术之一。
       </p>
     );
 
     const data = (
       <div>
-        <strong>Per-Cast Breakdown</strong>
-        <small> - click to expand</small>
+        <strong>每次施放的详细信息</strong>
+        <small> - 点击展开</small>
         {this.castTrackers.map((cast, ix) => {
-          const targetName = cast.targetId === undefined ? 'SELF' : 'ALLY';
+          const targetName = cast.targetId === undefined ? '自身' : '盟友';
           const metThresholdMana = cast.manaSaved >= INNERVATE_MANA_REQUIRED;
           const castWildGrowth =
             cast.casts.filter((c) => c.ability.guid === SPELLS.WILD_GROWTH.id).length > 0;
@@ -119,21 +117,22 @@ class Innervate extends Analyzer {
 
           const header = (
             <>
-              @ {this.owner.formatTimestamp(cast.timestamp)} &mdash;{' '}
-              <SpellLink spell={SPELLS.INNERVATE} /> ({formatNumber(cast.manaSaved)} mana saved)
+              在 {this.owner.formatTimestamp(cast.timestamp)} &mdash;{' '}
+              <SpellLink spell={SPELLS.INNERVATE} /> （节省了 {formatNumber(cast.manaSaved)}{' '}
+              法力值）
             </>
           );
 
           const checklistItems: CooldownExpandableItem[] = [];
           checklistItems.push({
-            label: 'Chain-cast expensive spells',
+            label: '连续施放高耗法术',
             result: <PassFailCheckmark pass={metThresholdMana} />,
-            details: <>(save at least {INNERVATE_MANA_REQUIRED} mana)</>,
+            details: <>(至少节省 {INNERVATE_MANA_REQUIRED} 法力值)</>,
           });
           checklistItems.push({
             label: (
               <>
-                Cast <SpellLink spell={SPELLS.WILD_GROWTH} />
+                施放 <SpellLink spell={SPELLS.WILD_GROWTH} />
               </>
             ),
             result: <PassFailCheckmark pass={castWildGrowth} />,
@@ -141,12 +140,12 @@ class Innervate extends Analyzer {
 
           const detailItems: CooldownExpandableItem[] = [];
           detailItems.push({
-            label: 'Used on',
+            label: '使用目标',
             result: '',
             details: <>{targetName}</>,
           });
           detailItems.push({
-            label: 'Casts during Innervate',
+            label: '激活期间施放的法术',
             result: '',
             details: cast.casts.map((c, iix) => (
               <span key={iix}>
@@ -174,14 +173,14 @@ class Innervate extends Analyzer {
   statistic() {
     return (
       <Statistic
-        position={STATISTIC_ORDER.OPTIONAL(25)} // chosen for fixed ordering of general stats
+        position={STATISTIC_ORDER.OPTIONAL(25)} // 固定顺序的统计信息编号
         size="flexible"
         category={STATISTIC_CATEGORY.GENERAL}
       >
         <BoringValueText
           label={
             <>
-              <SpellIcon spell={SPELLS.INNERVATE} /> Average mana saved
+              <SpellIcon spell={SPELLS.INNERVATE} /> 平均节省法力值
             </>
           }
         >
@@ -193,13 +192,13 @@ class Innervate extends Analyzer {
 }
 
 interface InnervateCast {
-  /** Timestamp of the start of the Tranquility channel */
+  /** 激活施放的时间戳 */
   timestamp: number;
-  /** The spells the player cast during Innervate, in order */
+  /** 玩家在激活期间施放的法术 */
   casts: CastEvent[];
-  /** The mana saved by the player */
+  /** 玩家节省的法力值 */
   manaSaved: number;
-  /** ID of the player this Innervate was cast on, or undefined for a self cast */
+  /** 该激活施放在的目标玩家ID，为 undefined 表示对自身施放 */
   targetId?: number;
 }
 

@@ -14,10 +14,10 @@ import SPELLS from 'common/SPELLS';
 import { SpellLink } from 'interface';
 
 /**
- * **Thriving Vegetation**
- * Spec Talent
+ * **蓬勃生长**
+ * 专精天赋
  *
- * Rejuvenation instantly heals your target for (15/30)% of its total periodic effect and Regrowth's duration is increased by (3/6) sec.
+ * 恢复法术瞬间治疗目标 (15/30)% 的总周期效果，且恢复法术的持续时间增加 (3/6) 秒。
  */
 export default class ThrivingVegetation extends Analyzer.withDependencies({
   hotTracker: HotTrackerRestoDruid,
@@ -40,19 +40,18 @@ export default class ThrivingVegetation extends Analyzer.withDependencies({
     return (
       <Statistic
         size="flexible"
-        position={STATISTIC_ORDER.OPTIONAL(9)} // number based on talent row
+        position={STATISTIC_ORDER.OPTIONAL(9)} // 根据天赋行的编号
         category={STATISTIC_CATEGORY.TALENTS}
         tooltip={
           <>
-            This is the sum of the direct healing from Rejuvenation casts and the extra healing from
-            the extension to Regrowth.
+            这是恢复施法和恢复法术延长效果的直接治疗总和。
             <ul>
               <li>
-                <SpellLink spell={SPELLS.REJUVENATION} /> Direct:{' '}
+                <SpellLink spell={SPELLS.REJUVENATION} /> 直接治疗:{' '}
                 <strong>{this.owner.formatItemHealingDone(instantRejuvHealing)}</strong>
               </li>
               <li>
-                <SpellLink spell={SPELLS.REGROWTH} /> Extension:{' '}
+                <SpellLink spell={SPELLS.REGROWTH} /> 延长治疗:{' '}
                 <strong>{this.owner.formatItemHealingDone(extraDurationHealing)}</strong>
               </li>
             </ul>
